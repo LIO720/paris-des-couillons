@@ -29,11 +29,11 @@
         <p class="text-[11px] font-medium text-slate-400 tracking-wider">développé par yosnick</p>
       </div>
 
-      <!-- Barre de Navigation / 3 Onglets -->
+      <!-- Barre de Navigation / 3 Onglets (toujours cliquables) -->
       <div class="flex justify-center space-x-1.5 pt-2">
-        <button onclick="switchTab('pronos')" id="btn-tab-pronos" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg">Pronos</button>
-        <button onclick="switchTab('infos')" id="btn-tab-infos" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700">Infos Match</button>
-        <button onclick="switchTab('resultats')" id="btn-tab-resultats" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700">Résultats</button>
+        <button type="button" onclick="switchTab('pronos')" id="btn-tab-pronos" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer">Pronos</button>
+        <button type="button" onclick="switchTab('infos')" id="btn-tab-infos" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Infos Match</button>
+        <button type="button" onclick="switchTab('resultats')" id="btn-tab-resultats" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Résultats</button>
       </div>
       
       <!-- Cagnotte Globale -->
@@ -86,7 +86,7 @@
           <input type="text" id="nom" required placeholder="Votre Prénom" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-center focus:border-blue-500 focus:outline-none placeholder-slate-400 transition">
         </div>
 
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3 text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-blue-600/30 active:scale-[0.98]">
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3 text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-blue-600/30 active:scale-[0.98] cursor-pointer">
           Valider mon prono
         </button>
       </form>
@@ -141,7 +141,7 @@
       </div>
 
       <div id="ai-resultats-container" class="space-y-4">
-        <span class="text-slate-400 italic text-[11px] block text-center">L'IA analyse le statut du match...</span>
+        <span class="text-slate-400 italic text-[11px] block text-center">Aucun résultat pour le moment.</span>
       </div>
     </main>
 
@@ -165,24 +165,26 @@
       const btnInfos = document.getElementById('btn-tab-infos');
       const btnResultats = document.getElementById('btn-tab-resultats');
 
+      if (!tabPronos || !tabInfos || !tabResultats) return;
+
       tabPronos.classList.add('hidden');
       tabInfos.classList.add('hidden');
       tabResultats.classList.add('hidden');
 
-      btnPronos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700";
-      btnInfos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700";
-      btnResultats.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700";
+      btnPronos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnInfos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnResultats.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
 
       if (tab === 'pronos') {
         tabPronos.classList.remove('hidden');
-        btnPronos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg";
+        btnPronos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
       } else if (tab === 'infos') {
         tabInfos.classList.remove('hidden');
-        btnInfos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg";
+        btnInfos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
         updateMatchInfoTab();
       } else if (tab === 'resultats') {
         tabResultats.classList.remove('hidden');
-        btnResultats.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg";
+        btnResultats.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
         loadAiResultatsMatch();
       }
     }
@@ -190,6 +192,7 @@
     async function fetchNextMatch() {
       try {
         const response = await fetch('/api/next-match');
+        if (!response.ok) return;
         const data = await response.json();
 
         if (data && data.fixture && data.teams) {
@@ -205,21 +208,10 @@
 
           matchDateTarget = new Date(data.fixture.date).getTime();
           startCountdown();
-        } else {
-          showWaitingState();
         }
       } catch (err) {
-        showWaitingState();
+        // En cas d'erreur de l'API externe, on garde l'état par défaut proprement
       }
-    }
-
-    function showWaitingState() {
-      currentMatchDetails = null;
-      document.getElementById('countdown').innerText = "Tirage au sort le 27 août";
-      document.getElementById('team-home-logo').src = "https://media.api-sports.io/football/teams/85.png";
-      document.getElementById('team-home-name').innerText = "PSG";
-      document.getElementById('team-away-logo').src = "https://media.api-sports.io/football/leagues/2.png";
-      document.getElementById('team-away-name').innerText = "À venir";
     }
 
     function updateMatchInfoTab() {
@@ -228,11 +220,6 @@
         document.getElementById('info-round').innerText = currentMatchDetails.league?.round || "Phase de groupes";
         document.getElementById('info-date').innerText = currentMatchDetails.fixture?.date ? new Date(currentMatchDetails.fixture.date).toLocaleString('fr-FR') : "À définir";
         document.getElementById('info-stadium').innerText = currentMatchDetails.fixture?.venue?.name || "Stade officiel";
-      } else {
-        document.getElementById('info-competition').innerText = "UEFA Champions League";
-        document.getElementById('info-round').innerText = "Tirage au sort le 27 août";
-        document.getElementById('info-date').innerText = "À définir";
-        document.getElementById('info-stadium').innerText = "À définir";
       }
     }
 
@@ -241,138 +228,168 @@
       const updateTimer = () => {
         const now = new Date().getTime();
         const diff = matchDateTarget - now;
+        const countdownEl = document.getElementById('countdown');
+        if (!countdownEl) return;
         if (diff <= 0) {
-          document.getElementById('countdown').innerText = "Match en cours ou terminé";
+          countdownEl.innerText = "Match en cours ou terminé";
           return;
         }
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        document.getElementById('countdown').innerText = 
-          `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        countdownEl.innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
       };
       updateTimer();
       setInterval(updateTimer, 1000);
     }
 
     async function loadParieurs() {
-      const { data, error } = await supabaseClient.from('pronostics').select('*');
-      if (error) return;
+      try {
+        const { data, error } = await supabaseClient.from('pronostics').select('*');
+        const parieursList = document.getElementById('parieurs-list');
+        const cagnotteEl = document.getElementById('cagnotte');
 
-      const count = data ? data.length : 0;
-      document.getElementById('cagnotte').innerText = `${count * MISE_PAR_PERSONNE} €`;
+        if (error || !data) {
+          if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px]">Aucun pari pour le moment</span>`;
+          if (cagnotteEl) cagnotteEl.innerText = `0 €`;
+          return;
+        }
 
-      if (!data || count === 0) {
-        document.getElementById('parieurs-list').innerHTML = `<span class="text-slate-400 italic text-[11px]">Aucun pari pour le moment</span>`;
-        return;
+        const count = data.length;
+        if (cagnotteEl) cagnotteEl.innerText = `${count * MISE_PAR_PERSONNE} €`;
+
+        if (count === 0) {
+          if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px]">Aucun pari pour le moment</span>`;
+          return;
+        }
+
+        if (parieursList) {
+          parieursList.innerHTML = data.map(p => 
+            `<span class="bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 shadow">${p.nom_ami || 'Parieur'}</span>`
+          ).join('');
+        }
+      } catch (err) {
+        // Sécurité anti-blocage
       }
-
-      document.getElementById('parieurs-list').innerHTML = data.map(p => 
-        `<span class="bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 shadow">${p.nom_ami || 'Parieur'}</span>`
-      ).join('');
     }
 
-    // Gestion automatique par l'IA des résultats, des pronos dévoilés et de la règle d'ex-aequo / jackpot
     async function loadAiResultatsMatch() {
       const container = document.getElementById('ai-resultats-container');
-      const { data: pronos, error } = await supabaseClient.from('pronostics').select('*');
+      if (!container) return;
 
-      if (error || !pronos || pronos.length === 0) {
-        container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun pronostic enregistré.</span>`;
-        return;
-      }
+      try {
+        const { data: pronos, error } = await supabaseClient.from('pronostics').select('*');
 
-      // Simulation de la récupération automatique du score réel via l'API par l'IA
-      // (Dans ton backend, l'IA interroge l'API-Sports pour récupérer le score réel du dernier match joué)
-      let matchTermine = true; // Passe à true quand l'API confirme la fin du match
-      let score Reel = "2-1"; // Exemple de score réel récupéré par l'IA (ex: PSG 2 - 1 Adversaire)
-      let minutePremierButReelle = 28; // Minute réelle du 1er but récupérée par l'IA
+        if (error || !pronos || pronos.length === 0) {
+          container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun pronostic enregistré pour le moment.</span>`;
+          return;
+        }
 
-      if (!matchTermine) {
+        let matchTermine = false; 
+        let scoreReel = "2-1"; 
+        let minutePremierButReelle = 28; 
+
+        if (!matchTermine) {
+          container.innerHTML = `
+            <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 text-center space-y-2">
+              <p class="text-xs font-bold text-blue-400">Match en cours ou à venir</p>
+              <p class="text-[11px] text-slate-300">Les pronostics restent secrets et seront dévoilés par l'IA dès le coup de sifflet final !</p>
+            </div>
+          `;
+          return;
+        }
+
+        const gagnantsScoreExact = pronos.filter(p => p.score_parier === scoreReel);
+        let messageVainqueur = "";
+
+        if (gagnantsScoreExact.length === 1) {
+          messageVainqueur = `<strong class="text-green-400">🏆 Vainqueur de la cagnotte : ${gagnantsScoreExact[0].nom_ami} !</strong>`;
+        } else if (gagnantsScoreExact.length > 1) {
+          gagnantsScoreExact.sort((a, b) => Math.abs(a.minute_1er_but - minutePremierButReelle) - Math.abs(b.minute_1er_but - minutePremierButReelle));
+          messageVainqueur = `<strong class="text-green-400">🏆 Vainqueur après départage (1er but) : ${gagnantsScoreExact[0].nom_ami} !</strong>`;
+        } else {
+          messageVainqueur = `<strong class="text-amber-400">Aucun score exact trouvé : La cagnotte est reportée et cumulée pour le prochain match !</strong>`;
+        }
+
         container.innerHTML = `
-          <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 text-center space-y-2">
-            <p class="text-xs font-bold text-blue-400">Match en cours ou à venir</p>
-            <p class="text-[11px] text-slate-300">Les pronostics restent secrets et seront dévoilés par l'IA dès le coup de sifflet final !</p>
-          </div>
-        `;
-        return;
-      }
-
-      // L'IA applique la logique métier :
-      // 1. Recherche du score exact
-      const gagnantsScoreExact = pronos.filter(p => p.score_parier === scoreReel);
-      
-      let messageVainqueur = "";
-      if (gagnantsScoreExact.length === 1) {
-        messageVainqueur = `<strong class="text-green-400">🏆 Vainqueur de la cagnotte : ${gagnantsScoreExact[0].nom_ami} !</strong> (Score exact trouvé)`;
-      } else if (gagnantsScoreExact.length > 1) {
-        // 2. Départage par ex-aequo (proximité de la minute du 1er but)
-        gagnantsScoreExact.sort((a, b) => Math.abs(a.minute_1er_but - minutePremierButReelle) - Math.abs(b.minute_1er_but - minutePremierButReelle));
-        const VainqueurExAequo = gagnantsScoreExact[0];
-        messageVainqueur = `<strong class="text-green-400">🏆 Vainqueur après départage (1er but) : ${VainqueurExAequo.nom_ami} !</strong>`;
-      } else {
-        messageVainqueur = `<strong class="text-amber-400">Aucun score exact trouvé : La cagnotte est reportée et cumulée pour le prochain match !</strong>`;
-      }
-
-      container.innerHTML = `
-        <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-3">
-          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-            <span class="text-xs font-bold text-amber-400">PSG vs Adversaire (Score réel : ${scoreReel})</span>
-            <span class="text-[10px] text-slate-400 uppercase">Analysé par l'IA</span>
-          </div>
-          <div class="space-y-2">
-            <p class="text-[11px] font-semibold text-slate-300">Pronostics de la bande (dévoilés) :</p>
-            <div class="space-y-1">
-              ${pronos.map(p => `
-                <div class="flex justify-between items-center text-xs bg-slate-900 p-2 rounded-xl border border-slate-800">
-                  <span class="font-bold text-blue-300">${p.nom_ami}</span>
-                  <div class="space-x-2 text-slate-300">
-                    <span>Prono : <strong>${p.score_parier}</strong></span>
-                    <span class="text-[10px] text-slate-400">(1er but: ${p.minute_1er_but}')</span>
+          <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <span class="text-xs font-bold text-amber-400">PSG vs Adversaire (Score réel : ${scoreReel})</span>
+              <span class="text-[10px] text-slate-400 uppercase">Analysé par l'IA</span>
+            </div>
+            <div class="space-y-2">
+              <p class="text-[11px] font-semibold text-slate-300">Pronostics de la bande (dévoilés) :</p>
+              <div class="space-y-1">
+                ${pronos.map(p => `
+                  <div class="flex justify-between items-center text-xs bg-slate-900 p-2 rounded-xl border border-slate-800">
+                    <span class="font-bold text-blue-300">${p.nom_ami}</span>
+                    <div class="space-x-2 text-slate-300">
+                      <span>Prono : <strong>${p.score_parier}</strong></span>
+                      <span class="text-[10px] text-slate-400">(1er but: ${p.minute_1er_but}')</span>
+                    </div>
                   </div>
-                </div>
-              `).join('')}
+                `).join('')}
+              </div>
+            </div>
+            <div class="bg-blue-950/40 border border-blue-900/50 p-3 rounded-xl text-center space-y-1">
+              <p class="text-xs font-bold text-amber-300">✨ Bilan de l'IA</p>
+              <p class="text-[11px] text-slate-300">${messageVainqueur}</p>
             </div>
           </div>
-          <div class="bg-blue-950/40 border border-blue-900/50 p-3 rounded-xl text-center space-y-1">
-            <p class="text-xs font-bold text-amber-300">✨ Bilan de l'IA</p>
-            <p class="text-[11px] text-slate-300">${messageVainqueur}</p>
-          </div>
-        </div>
-      `;
+        `;
+      } catch (err) {
+        container.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center">Erreur de chargement des résultats.</span>`;
+      }
     }
 
-    document.getElementById('prono-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const status = document.getElementById('status');
-      status.innerText = "Validation...";
-      status.className = "text-center text-[11px] font-semibold text-blue-400";
-
-      const nom = document.getElementById('nom').value.trim();
-      const score1 = document.getElementById('score1').value;
-      const score2 = document.getElementById('score2').value;
-      const minute = parseInt(document.getElementById('minute').value);
-      const scoreParier = `${score1}-${score2}`;
-
-      const { error } = await supabaseClient.from('pronostics').insert([
-        { 
-          nom_ami: nom, 
-          score_parier: scoreParier, 
-          minute_1er_but: minute 
+    const pronoForm = document.getElementById('prono-form');
+    if (pronoForm) {
+      pronoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const status = document.getElementById('status');
+        if (status) {
+          status.innerText = "Validation...";
+          status.className = "text-center text-[11px] font-semibold text-blue-400";
         }
-      ]);
 
-      if (error) {
-        status.innerText = "Erreur : " + error.message;
-        status.className = "text-center text-[11px] font-semibold text-red-400";
-      } else {
-        status.innerText = "Prono enregistré avec succès ! 🎉";
-        status.className = "text-center text-[11px] font-semibold text-green-400";
-        document.getElementById('prono-form').reset();
-        loadParieurs();
-      }
-    });
+        const nom = document.getElementById('nom').value.trim();
+        const score1 = document.getElementById('score1').value;
+        const score2 = document.getElementById('score2').value;
+        const minute = parseInt(document.getElementById('minute').value);
+        const scoreParier = `${score1}-${score2}`;
 
+        try {
+          const { error } = await supabaseClient.from('pronostics').insert([
+            { 
+              nom_ami: nom, 
+              score_parier: scoreParier, 
+              minute_1er_but: minute 
+            }
+          ]);
+
+          if (error) {
+            if (status) {
+              status.innerText = "Erreur : " + error.message;
+              status.className = "text-center text-[11px] font-semibold text-red-400";
+            }
+          } else {
+            if (status) {
+              status.innerText = "Prono enregistré avec succès ! 🎉";
+              status.className = "text-center text-[11px] font-semibold text-green-400";
+            }
+            pronoForm.reset();
+            loadParieurs();
+          }
+        } catch (err) {
+          if (status) {
+            status.innerText = "Erreur de connexion.";
+            status.className = "text-center text-[11px] font-semibold text-red-400";
+          }
+        }
+      });
+    }
+
+    // Lancement au démarrage
     fetchNextMatch();
     loadParieurs();
   </script>
