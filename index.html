@@ -1,130 +1,65 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Paris PSG – Champions League</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    /* Arrière-plan stade responsive pour PC et Mobile */
-    .bg-stade {
-      background-image: url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2076&auto=format&fit=crop');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-    }
-    @media (max-width: 768px) {
-      .bg-stade {
-        background-attachment: scroll; /* Évite les bugs de zoom sur certains mobiles */
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paris PSG - Champions League</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-3 sm:p-4 relative overflow-x-hidden bg-stade">
+<body class="bg-slate-900 text-white min-h-screen p-4 flex flex-col items-center">
 
-  <!-- Overlay sombre pour garder la lisibilité -->
-  <div class="fixed inset-0 z-0 bg-slate-950/75 backdrop-blur-[2px]"></div>
-
-  <div class="w-full max-w-md space-y-5 relative z-10 my-auto">
-    
-    <!-- En-tête -->
-    <div class="text-center space-y-2.5">
-      <div class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-blue-900/95 via-blue-800 to-blue-900/95 border border-blue-400/40 shadow-2xl backdrop-blur-md flex items-center justify-center space-x-3">
-        <img src="https://media.api-sports.io/football/leagues/2.png" alt="UEFA Champions League" class="w-10 h-10 object-contain filter brightness-0 invert drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]">
-        <span class="text-base sm:text-lg font-black tracking-widest text-white uppercase drop-shadow-md">Champions League</span>
-      </div>
-
-      <h1 class="text-xl sm:text-2xl font-black tracking-wider uppercase text-white drop-shadow-md">PARIS PSG</h1>
-      
-      <!-- Cagnotte -->
-      <div class="inline-block px-5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 shadow-lg backdrop-blur-md">
-        <span class="block text-[10px] text-slate-400 uppercase tracking-widest font-bold">Cagnotte</span>
-        <span id="cagnotte" class="text-lg sm:text-xl font-black text-amber-400">0 €</span>
-      </div>
-    </div>
-
-    <!-- Carte du Match -->
-    <main class="bg-slate-900/90 border border-slate-700/60 rounded-3xl p-5 sm:p-6 backdrop-blur-xl shadow-2xl space-y-5">
-      
-      <div class="text-center space-y-0.5">
-        <span id="match-subtitle" class="text-[11px] font-bold tracking-widest text-blue-400 uppercase">PROCHAIN MATCH</span>
-        <p class="text-xs text-slate-300">Coup d'envoi dans</p>
-        <div id="countdown" class="text-base sm:text-lg font-black text-amber-400 py-1">
-          Tirage au sort le 27 août
+    <!-- En-tête avec logo CL bien visible -->
+    <header class="w-full max-w-sm text-center mb-6">
+        <div class="bg-blue-900 p-4 rounded-2xl shadow-xl border border-blue-500 mb-4 flex items-center justify-center gap-3">
+            <img src="https://upload.wikimedia.org/wikipedia/fr/thumb/b/bf/Logo_UEFA_Champions_League.svg/1200px-Logo_UEFA_Champions_League.svg.png" alt="CL" class="w-12 h-12 object-contain">
+            <h1 class="text-xl font-black uppercase tracking-tighter">Champions League</h1>
         </div>
-      </div>
+        
+        <h2 class="text-3xl font-black uppercase text-white mb-2">Paris PSG</h2>
+        <div class="bg-slate-800 border border-slate-600 rounded-xl px-6 py-2 inline-block">
+            <p class="text-[10px] uppercase text-slate-400 font-bold">Cagnotte</p>
+            <span class="text-2xl font-black text-amber-400" id="total-cagnotte">5 €</span>
+        </div>
+    </header>
 
-      <!-- Équipes -->
-      <div class="flex items-center justify-between px-3 py-2.5 bg-slate-950/70 rounded-2xl border border-slate-800 shadow-inner">
-        <div class="flex flex-col items-center space-y-1.5 w-1/3 text-center">
-          <img id="team-home-logo" src="https://media.api-sports.io/football/teams/85.png" alt="PSG" class="w-12 h-12 object-contain filter drop-shadow-lg">
-          <span id="team-home-name" class="text-xs font-bold text-slate-200 truncate w-full">PSG</span>
+    <!-- Carte principale -->
+    <main class="w-full max-w-sm bg-slate-950 rounded-3xl p-6 shadow-2xl border border-slate-800">
+        <div class="text-center mb-6">
+            <p class="text-blue-400 text-xs font-bold uppercase tracking-widest mb-1">Prochain Match</p>
+            <p class="text-amber-500 font-bold text-sm mb-4">Tirage au sort le 27 août</p>
+            
+            <!-- Logos clubs bien visibles -->
+            <div class="flex items-center justify-center gap-6">
+                <div class="flex flex-col items-center">
+                    <img src="https://upload.wikimedia.org/wikipedia/fr/thumb/8/86/Paris_Saint-Germain_Logo.svg/1200px-Paris_Saint-Germain_Logo.svg.png" class="w-20 h-20 object-contain mb-2" alt="PSG">
+                    <span class="font-bold">PSG</span>
+                </div>
+                <span class="text-2xl font-black text-slate-600">VS</span>
+                <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center border-2 border-dashed border-slate-600 mb-2 text-slate-500">?</div>
+                    <span class="font-bold text-slate-500">À venir</span>
+                </div>
+            </div>
         </div>
-        <div class="text-xs font-black text-slate-400 tracking-widest">VS</div>
-        <div class="flex flex-col items-center space-y-1.5 w-1/3 text-center">
-          <img id="team-away-logo" src="https://media.api-sports.io/football/leagues/2.png" alt="Champions League" class="w-10 h-10 object-contain filter drop-shadow">
-          <span id="team-away-name" class="text-xs font-bold text-slate-300 truncate w-full">À venir</span>
-        </div>
-      </div>
 
-      <!-- Formulaire -->
-      <form id="prono-form" class="space-y-3.5">
-        <div class="text-center">
-          <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-2">Votre Pronostic</label>
-          <div class="flex items-center justify-center space-x-3">
-            <input type="number" id="score1" min="0" max="20" required value="0" class="w-16 h-12 text-center text-xl font-bold bg-slate-950/90 border border-slate-700 rounded-xl focus:border-blue-500 focus:outline-none transition">
-            <span class="text-slate-400 font-bold">-</span>
-            <input type="number" id="score2" min="0" max="20" required value="0" class="w-16 h-12 text-center text-xl font-bold bg-slate-950/90 border border-slate-700 rounded-xl focus:border-blue-500 focus:outline-none transition">
-          </div>
-        </div>
-        <div><input type="number" id="minute" min="0" max="120" required placeholder="Minute du 1er but (ex: 34)" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-center focus:border-blue-500 focus:outline-none placeholder-slate-400 transition"></div>
-        <div><input type="text" id="nom" required placeholder="Votre Prénom" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-center focus:border-blue-500 focus:outline-none placeholder-slate-400 transition"></div>
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3 text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-blue-600/30 active:scale-[0.98]">Valider mon prono</button>
-      </form>
-      <div id="status" class="text-center text-[11px] font-semibold"></div>
-
-      <!-- Parieurs -->
-      <div class="border-t border-slate-800/80 pt-3.5">
-        <h2 class="text-slate-300 text-[11px] uppercase font-bold tracking-wider text-center mb-2">Qui a parié ?</h2>
-        <div id="parieurs-list" class="flex flex-wrap gap-1.5 justify-center max-h-24 overflow-y-auto">
-          <span class="text-slate-400 italic text-[11px]">Chargement...</span>
-        </div>
-      </div>
+        <form id="prono-form" class="space-y-4">
+            <div class="text-center">
+                <label class="block text-xs uppercase text-slate-400 mb-2">Votre Pronostic</label>
+                <div class="flex justify-center items-center gap-4">
+                    <input type="number" id="score-psg" required class="w-20 h-20 bg-slate-900 border-2 border-blue-600 rounded-3xl text-center text-3xl font-bold">
+                    <span class="text-2xl font-black text-slate-700">-</span>
+                    <input type="number" id="score-adv" required class="w-20 h-20 bg-slate-900 border-2 border-slate-600 rounded-3xl text-center text-3xl font-bold">
+                </div>
+            </div>
+            
+            <input type="number" id="minute" placeholder="Minute 1er but" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-center">
+            <input type="text" id="nom" placeholder="Votre Prénom" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-center">
+            
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black text-lg shadow-lg shadow-blue-900/50 uppercase tracking-widest">
+                Valider mon prono
+            </button>
+        </form>
     </main>
-  </div>
-
-  <script>
-    const SUPABASE_URL = "https://bgcuxroguucumbveptvb.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_MuYlr1whhZ7eFS1D8LoP7Q_0NV70N1X";
-    const MISE_PAR_PERSONNE = 5;
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    async function loadParieurs() {
-      const { data, error } = await supabaseClient.from('pronostics').select('*');
-      if (data) {
-        document.getElementById('cagnotte').innerText = `${data.length * MISE_PAR_PERSONNE} €`;
-        document.getElementById('parieurs-list').innerHTML = data.length > 0 ? 
-          data.map(p => `<span class="bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 shadow-sm">${p.nom_ami}</span>`).join('') :
-          `<span class="text-slate-400 italic text-[11px]">Aucun pari</span>`;
-      }
-    }
-
-    document.getElementById('prono-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const { error } = await supabaseClient.from('pronostics').insert([{ 
-        nom_ami: document.getElementById('nom').value.trim(), 
-        score_parier: `${document.getElementById('score1').value}-${document.getElementById('score2').value}`, 
-        minute_1er_but: parseInt(document.getElementById('minute').value) 
-      }]);
-      if (!error) {
-        document.getElementById('status').innerText = "Prono enregistré ! 🎉";
-        document.getElementById('prono-form').reset();
-        loadParieurs();
-      }
-    });
-    loadParieurs();
-  </script>
 </body>
 </html>
