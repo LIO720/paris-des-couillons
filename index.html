@@ -164,14 +164,15 @@
     async function loadParieurs() {
       const { data, error } = await supabaseClient.from('bets').select('*');
       if (error) {
-        document.getElementById('parieurs-list').innerHTML = `<span class="text-red-400 text-[11px]">Erreur chargement</span>`;
+        console.error("Erreur Supabase :", error);
+        document.getElementById('parieurs-list').innerHTML = `<span class="text-red-400 text-[11px]">${error.message}</span>`;
         return;
       }
 
-      const count = data.length;
+      const count = data ? data.length : 0;
       document.getElementById('cagnotte').innerText = `${count * MISE_PAR_PERSONNE} €`;
 
-      if (count === 0) {
+      if (!data || count === 0) {
         document.getElementById('parieurs-list').innerHTML = `<span class="text-slate-500 italic text-[11px]">Aucun pari pour le moment</span>`;
         return;
       }
@@ -197,7 +198,7 @@
       ]);
 
       if (error) {
-        status.innerText = "Erreur lors de l'enregistrement.";
+        status.innerText = "Erreur : " + error.message;
         status.className = "text-center text-[11px] font-semibold text-red-400";
       } else {
         status.innerText = "Prono enregistré avec succès ! 🎉";
