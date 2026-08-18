@@ -9,18 +9,18 @@
 </head>
 <body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 relative overflow-x-hidden">
 
-  <!-- Arrière-plan Stade de Football naturel (pelouse verte visible) -->
+  <!-- Arrière-plan Stade de Football avec pelouse verte naturelle -->
   <div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat scale-105" 
        style="background-image: url('https://images.unsplash.com/photo-1518604668838-89a1f24d7b6f?q=80&w=2070&auto=format&fit=crop');">
-    <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-[1px]"></div>
+    <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-[1px]"></div>
   </div>
 
   <div class="w-full max-w-md space-y-6 relative z-10">
     
-    <!-- En-tête avec Bannière Logo Champions League en grand et en blanc -->
+    <!-- En-tête : Bannière Champions League blanche sur toute la largeur -->
     <div class="text-center space-y-3">
-      <div class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-900/80 via-blue-800/90 to-blue-900/80 border border-blue-500/40 shadow-2xl backdrop-blur-md flex items-center justify-center space-x-3">
-        <img src="https://media.api-sports.io/football/leagues/2.png" alt="UEFA Champions League" class="w-12 h-12 object-contain filter brightness-0 invert drop-shadow-[0_0_12px_rgba(255,255,255,0.8)]">
+      <div class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-900/90 via-blue-800 to-blue-900/90 border border-blue-500/50 shadow-2xl backdrop-blur-md flex items-center justify-center space-x-3">
+        <img src="https://media.api-sports.io/football/leagues/2.png" alt="UEFA Champions League" class="w-12 h-12 object-contain filter brightness-0 invert drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]">
         <span class="text-lg font-black tracking-widest text-white uppercase drop-shadow-md">Champions League</span>
       </div>
 
@@ -185,7 +185,7 @@
       }
 
       document.getElementById('parieurs-list').innerHTML = data.map(p => 
-        `<span class="bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 shadow">${p.nom}</span>`
+        `<span class="bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 shadow">${p.nom || p.name || 'Parieur'}</span>`
       ).join('');
     }
 
@@ -200,9 +200,15 @@
       const score2 = parseInt(document.getElementById('score2').value);
       const minute = document.getElementById('minute').value.trim();
 
-      const { error } = await supabaseClient.from('pronostics').insert([
-        { nom, score_psg: score1, score_adv: score2, minute_premier_but: minute }
-      ]);
+      // On s'adapte aux colonnes exactes si besoin, ou on envoie les deux formats standards les plus fréquents
+      const payload = {
+        nom: nom,
+        score_psg: score1,
+        score_adv: score2,
+        minute_premier_but: minute
+      };
+
+      const { error } = await supabaseClient.from('pronostics').insert([payload]);
 
       if (error) {
         status.innerText = "Erreur : " + error.message;
