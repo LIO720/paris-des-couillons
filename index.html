@@ -75,8 +75,9 @@
           </div>
         </div>
 
+        <!-- Champ minute du premier but -->
         <div>
-          <input type="text" id="minute" placeholder="Minute du 1er but" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-center focus:border-blue-500 focus:outline-none placeholder-slate-400 transition">
+          <input type="number" id="minute" min="0" max="120" required placeholder="Minute du 1er but (ex: 34)" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-center focus:border-blue-500 focus:outline-none placeholder-slate-400 transition">
         </div>
 
         <div>
@@ -185,7 +186,7 @@
       }
 
       document.getElementById('parieurs-list').innerHTML = data.map(p => 
-        `<span class="bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 shadow">${p.nom || p.name || 'Parieur'}</span>`
+        `<span class="bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 shadow">${p.nom_ami || 'Parieur'}</span>`
       ).join('');
     }
 
@@ -196,19 +197,21 @@
       status.className = "text-center text-[11px] font-semibold text-blue-400";
 
       const nom = document.getElementById('nom').value.trim();
-      const score1 = parseInt(document.getElementById('score1').value);
-      const score2 = parseInt(document.getElementById('score2').value);
-      const minute = document.getElementById('minute').value.trim();
+      const score1 = document.getElementById('score1').value;
+      const score2 = document.getElementById('score2').value;
+      const minute = parseInt(document.getElementById('minute').value);
 
-      // On s'adapte aux colonnes exactes si besoin, ou on envoie les deux formats standards les plus fréquents
-      const payload = {
-        nom: nom,
-        score_psg: score1,
-        score_adv: score2,
-        minute_premier_but: minute
-      };
+      // Concaténation des scores sous forme de texte pour la colonne `score_parier` (ex: "2-1")
+      const scoreParier = `${score1}-${score2}`;
 
-      const { error } = await supabaseClient.from('pronostics').insert([payload]);
+      // Envoi avec les noms exacts de tes colonnes Supabase
+      const { error } = await supabaseClient.from('pronostics').insert([
+        { 
+          nom_ami: nom, 
+          score_parier: scoreParier, 
+          minute_1er_but: minute 
+        }
+      ]);
 
       if (error) {
         status.innerText = "Erreur : " + error.message;
