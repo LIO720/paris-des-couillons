@@ -9,10 +9,10 @@
 </head>
 <body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 relative overflow-x-hidden">
 
-  <!-- Arrière-plan Stade de Football avec pelouse verte naturelle -->
-  <div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat scale-105" 
-       style="background-image: url('https://images.unsplash.com/photo-1518604668838-89a1f24d7b6f?q=80&w=2070&auto=format&fit=crop');">
-    <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-[1px]"></div>
+  <!-- Arrière-plan Stade de Football avec couleur de secours verte pelouse -->
+  <div class="fixed inset-0 z-0 bg-slate-900 bg-cover bg-center bg-no-repeat scale-105" 
+       style="background-color: #064e3b; background-image: linear-gradient(to bottom, rgba(3, 7, 18, 0.8), rgba(2, 44, 34, 0.85)), url('https://images.unsplash.com/photo-1518604668838-89a1f24d7b6f?q=80&w=2070&auto=format&fit=crop');">
+    <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-[1px]"></div>
   </div>
 
   <div class="w-full max-w-md space-y-6 relative z-10">
@@ -201,10 +201,8 @@
       const score2 = document.getElementById('score2').value;
       const minute = parseInt(document.getElementById('minute').value);
 
-      // Concaténation des scores sous forme de texte pour la colonne `score_parier` (ex: "2-1")
       const scoreParier = `${score1}-${score2}`;
 
-      // Envoi avec les noms exacts de tes colonnes Supabase
       const { error } = await supabaseClient.from('pronostics').insert([
         { 
           nom_ami: nom, 
