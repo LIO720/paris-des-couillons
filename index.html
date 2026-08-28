@@ -126,12 +126,31 @@
         </div>
         <div class="flex justify-between border-b border-slate-800 pb-2">
           <span class="text-slate-400">Stade</span>
-          <span class="font-semibold text-white" id="info-stadium">Parc des Princes / Extérieur</span>
+          <span class="font-semibold text-amber-400" id="info-stadium">En attente d'attribution</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Arbitre Officiel</span>
+          <span class="font-semibold text-white" id="info-referee">En attente désignation UEFA</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Nationalité</span>
+          <span class="font-semibold text-slate-300" id="info-referee-country">UEFA</span>
         </div>
         <div class="flex justify-between">
           <span class="text-slate-400">Diffuseur TV</span>
           <span class="font-semibold text-amber-400">Canal+ / RMC Sport</span>
         </div>
+      </div>
+
+      <!-- Bloc Analyse IA Arbitre -->
+      <div class="bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4 space-y-2">
+        <div class="flex items-center space-x-2 text-blue-400 font-bold text-[11px] uppercase tracking-wider">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg>
+          <span>Analyse IA – Profil de l'arbitre</span>
+        </div>
+        <p id="info-referee-comment" class="text-[11px] text-slate-300 italic leading-relaxed">
+          En attente de la désignation officielle de l'arbitre par l'UEFA pour générer l'analyse du style de jeu.
+        </p>
       </div>
     </main>
 
@@ -212,6 +231,26 @@
           document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
           document.getElementById('info-round').innerText = match.league.round || 'Phase de ligue';
 
+          // Stade automatisé
+          const stadiumName = match.fixture.venue.name || 'Stade non défini';
+          const stadiumCity = match.fixture.venue.city ? ` (${match.fixture.venue.city})` : '';
+          document.getElementById('info-stadium').innerText = stadiumName + stadiumCity;
+
+          // Arbitre et Nationalité automatisés
+          if (match.fixture.referee) {
+            const refParts = match.fixture.referee.split(',');
+            const refName = refParts[0] ? refParts[0].trim() : match.fixture.referee;
+            const refCountry = refParts[1] ? refParts[1].trim() : 'International';
+
+            document.getElementById('info-referee').innerText = refName;
+            document.getElementById('info-referee-country').innerText = refCountry;
+            document.getElementById('info-referee-comment').innerText = generateRefereeAIComment(refName, refCountry);
+          } else {
+            document.getElementById('info-referee').innerText = 'En attente désignation UEFA';
+            document.getElementById('info-referee-country').innerText = 'UEFA';
+            document.getElementById('info-referee-comment').innerText = "L'UEFA n'a pas encore désigné le corps arbitral pour cette rencontre. L'analyse du profil et du style de jeu de l'arbitre sera disponible dès la désignation officielle.";
+          }
+
           startCountdown(matchDate);
           return;
         }
@@ -222,6 +261,30 @@
       document.getElementById('countdown').innerText = "Programmation UEFA en cours";
       document.getElementById('team-away-name').innerText = "Prochain adversaire";
       document.getElementById('info-date').innerText = "Date et heure en attente";
+    }
+
+    function generateRefereeAIComment(name, country) {
+      const n = name.toLowerCase();
+      if (n.includes('turpin')) {
+        return "Clément Turpin est un arbitre d'expérience internationale très respecté. Réputé pédagogue avec les capitaines, il privilégie la fluidité du jeu tout en restant intraitable sur les fautes tactiques d'anti-jeu. Un arbitrage mesuré et autoritaire.";
+      }
+      if (n.includes('marciniak')) {
+        return "Szymon Marciniak figure parmi l'élite mondiale des arbitres UEFA. Avec une excellente condition physique et un style très ferme, il laisse beaucoup jouer dans l'impact sans siffler les petites fautes, ce qui garantit un rythme très élevé.";
+      }
+      if (n.includes('taylor')) {
+        return "Anthony Taylor applique la tradition britannique avec une grande tolérance sur les duels physiques. Il intervient peu au sifflet pour maintenir l'intensité du jeu, exigeant des joueurs une grande maîtrise et un timing parfait dans les tacles.";
+      }
+      if (n.includes('letexier')) {
+        return "François Letexier incarne la nouvelle génération d'arbitres UEFA très dynamique et rigoureuse. Très à l'aise avec la VAR, il gère les moments de tension avec calme et n'hésite pas à sanctionner rapidement les contestations.";
+      }
+      if (n.includes('vincic') || n.includes('vinčić')) {
+        return "Slavko Vinčić est un arbitre méthodique au sommet européen. Il garde un contrôle strict sur le tempo de la rencontre et maîtrise parfaitement la pression des grandes affiches de Champions League sans céder à la pression du public.";
+      }
+      if (n.includes('kovacs') || n.includes('kovács')) {
+        return "István Kovács est reconnu pour son placement très proche de l'action et sa sévérité sur les fautes d'antijeu. Il n'hésite pas à sortir les cartons très tôt dans la rencontre pour poser ses limites physiques.";
+      }
+      
+      return `${name} (${country}) est un arbitre international sélectionné par l'UEFA pour les affiches de Ligue des Champions. Son style est axé sur le respect des lois du jeu, une gestion rigoureuse des duels et une utilisation mesurée de la VAR.`;
     }
 
     function startCountdown(targetDate) {
