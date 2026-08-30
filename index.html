@@ -116,7 +116,7 @@
     <!-- ONGLET 2 : INFOS MATCH -->
     <main id="tab-infos" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-5">
       <div class="text-center space-y-1">
-        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Informations du Match C1</h2>
+        <h2 id="info-match-title" class="text-xs font-bold tracking-widest text-blue-400 uppercase">PSG vs En attente UEFA</h2>
         <p class="text-[11px] text-slate-300">Détails officiels de la rencontre</p>
       </div>
 
@@ -298,6 +298,12 @@
           document.getElementById('team-away-name').innerText = awayTeamName;
           document.getElementById('team-away-logo').src = isHome ? match.teams.away.logo : match.teams.home.logo;
           document.getElementById('team-away-logo').className = "w-10 h-10 object-contain drop-shadow-lg";
+
+          // Mise à jour dynamique de l'affiche du match dans l'onglet infos
+          const infoMatchTitle = document.getElementById('info-match-title');
+          if (infoMatchTitle) {
+            infoMatchTitle.innerText = `${match.teams.home.name} vs ${awayTeamName}`;
+          }
 
           document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
           document.getElementById('info-round').innerText = roundName;
