@@ -302,7 +302,7 @@
       }, 1000);
     }
 
-    // Gestion des 8 journées de la Phase de Ligue uniquement (exclusions des barrages/qualifications)
+    // Gestion des 8 journées de la Phase de Ligue (exclusion souple des barrages et tours de qualification)
     function initMatchdaysNav() {
       const nav = document.getElementById('matchdays-nav');
       if (!nav || nav.children.length > 0) return;
@@ -330,28 +330,27 @@
           });
           const data = await response.json();
           if (data.response) {
-            // Filtrage strict pour ne garder que la Phase de Ligue (exclut les barrages / qualifications)
+            // Exclusion stricte des qualifications et des barrages/playoffs d'après-saison
             allClFixtures = data.response.filter(m => {
               const r = (m.league.round || '').toLowerCase();
-              return r.includes('league stage') || r.includes('regular season');
+              const isPlayoffOrQualif = r.includes('qualifying') || r.includes('preliminary') || r.includes('knockout round play-offs') || r.includes('barrage');
+              return !isPlayoffOrQualif;
             });
           }
         }
 
-        const roundsMap = {};
-        allClFixtures.forEach(m => {
-          const r = m.league.round || 'Autre';
-          if (!roundsMap[r]) roundsMap[r] = [];
-          roundsMap[r].push(m);
+        // Recherche des matchs correspondants à la journée
+        let matchesToShow = allClFixtures.filter(m => {
+          const r = (m.league.round || '').toLowerCase();
+          return r.includes(dayNum.toString()) || r.includes(`matchday ${dayNum}`) || r.includes(`journée ${dayNum}`);
         });
 
-        const roundKeys = Object.keys(roundsMap);
-        let matchesToShow = [];
-
-        if (roundKeys.length >= dayNum) {
-          matchesToShow = roundsMap[roundKeys[dayNum - 1]];
-        } else {
-          matchesToShow = allClFixtures.filter(m => m.league.round && m.league.round.includes(dayNum));
+        // Fallback par position si les libellés de l'API sont différents
+        if (matchesToShow.length === 0 && allClFixtures.length > 0) {
+          const uniqueRounds = [...new Set(allClFixtures.map(m => m.league.round))];
+          if (uniqueRounds[dayNum - 1]) {
+            matchesToShow = allClFixtures.filter(m => m.league.round === uniqueRounds[dayNum - 1]);
+          }
         }
 
         if (matchesToShow && matchesToShow.length > 0) {
