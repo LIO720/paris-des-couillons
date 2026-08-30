@@ -104,11 +104,11 @@
 
       <div id="status" class="text-center text-[11px] font-semibold"></div>
 
-      <!-- Parieurs du match actuel -->
-      <div class="border-t border-slate-800 pt-4">
-        <h2 class="text-slate-300 text-[11px] uppercase font-bold tracking-wider text-center mb-2.5">Qui a parié ?</h2>
-        <div id="parieurs-list" class="flex flex-wrap gap-1.5 justify-center">
-          <span class="text-slate-400 italic text-[11px]">Chargement...</span>
+      <!-- Parieurs du match (Masqués si match en cours / Dévoilés si FT) -->
+      <div class="border-t border-slate-800 pt-4 space-y-2.5">
+        <h2 class="text-slate-300 text-[11px] uppercase font-bold tracking-wider text-center">Liste des Parieurs</h2>
+        <div id="parieurs-list" class="space-y-1.5">
+          <span class="text-slate-400 italic text-[11px] block text-center">Chargement...</span>
         </div>
       </div>
     </main>
@@ -203,7 +203,6 @@
   <script>
     const SUPABASE_URL = "https://bgcuxroguucumbveptvb.supabase.co";
     const SUPABASE_KEY = "sb_publishable_MuYlr1whhZ7eFS1D8LoP7Q_0NV70N1X";
-    const MISE_PAR_PERSONNE = 5;
     const API_FOOTBALL_KEY = '15a5eabb2d17b76fb922cd808a574779';
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -211,6 +210,7 @@
     let matchdaysChunks = [];
     let currentHomeTeamId = 85;
     let currentAwayTeamId = null;
+    let currentMatchFinished = false; // Suivi de l'état du match pour masquer/afficher les pronos
 
     function switchTab(tab) {
       const tabPronos = document.getElementById('tab-pronos');
@@ -277,7 +277,12 @@
             const match = clMatches[0];
             const matchDate = new Date(match.fixture.date);
             const isHome = match.teams.home.id === 85;
+            const statusShort = match.fixture.status.short;
             
+            // Détection automatique si le match est terminé
+            currentMatchFinished = (statusShort === 'FT');
+            loadParieurs(); // Actualise l'affichage (masqué ou révélé)
+
             currentHomeTeamId = match.teams.home.id;
             currentAwayTeamId = match.teams.away.id;
             const awayTeamName = isHome ? match.teams.away.name : match.teams.home.name;
@@ -603,7 +608,7 @@
         const cagnotteEl = document.getElementById('cagnotte');
 
         if (error || !data) {
-          if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px]">Aucun pari pour le moment</span>`;
+          if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun pari pour le moment</span>`;
           if (cagnotteEl) cagnotteEl.innerText = `0 €`;
           return;
         }
@@ -612,14 +617,24 @@
         if (cagnotteEl) cagnotteEl.innerText = `${count * 5} €`;
 
         if (count === 0) {
-          if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px]">Aucun pari pour le moment</span>`;
+          if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun pari pour le moment</span>`;
           return;
         }
 
         if (parieursList) {
-          parieursList.innerHTML = data.map(p => 
-            `<span class="bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 shadow">${p.nom_ami || 'Parieur'}</span>`
-          ).join('');
+          parieursList.innerHTML = data.map(p => `
+            <div class="flex items-center justify-between bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 text-xs w-full shadow-inner">
+              <span class="font-bold text-slate-200">${p.nom_ami || 'Parieur'}</span>
+              <div class="flex items-center space-x-3">
+                ${currentMatchFinished ? `
+                  <span class="bg-blue-950 text-blue-400 px-2 py-1 rounded-lg font-mono font-bold border border-blue-800/60">Prono : ${p.score_parier}</span>
+                  <span class="text-slate-400 text-[10px]">Min : <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
+                ` : `
+                  <span class="bg-slate-800 text-slate-400 px-2.5 py-1 rounded-lg font-medium border border-slate-700 text-[10px]">🔒 Prono masqué</span>
+                `}
+              </div>
+            </div>
+          `).join('');
         }
       } catch (err) {}
     }
