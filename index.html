@@ -38,8 +38,8 @@
       </div>
 
       <div class="bg-[#0b132b] p-3 rounded-lg text-center border border-slate-800">
-        <span class="text-[10px] uppercase text-slate-400 block tracking-wider">Coup d'envoi dans</span>
-        <span id="countdown" class="text-sm font-bold text-blue-400">Chargement via le serveur...</span>
+        <span class="text-[10px] uppercase text-slate-400 block tracking-wider">Diagnostic API</span>
+        <span id="countdown" class="text-sm font-bold text-blue-400">Interrogation en cours...</span>
       </div>
 
       <form id="form-prono" onsubmit="submitPronostic(event)" class="space-y-4">
@@ -91,58 +91,42 @@
     const SUPABASE_KEY = "sb_publishable_MuYlr1whhZ7eFS1D8LoP7Q_0NV70N1X"; 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let currentFixtureId = null;
-    let timerInterval = null;
 
     async function fetchNextPSGMatch() {
-      let match = null;
       try {
         const res = await fetch('/api/match');
         const data = await res.json();
-        if (data.response && data.response.length > 0) {
-          match = data.response[0];
-        }
-      } catch (e) {
-        console.warn("Erreur serveur :", e);
-      }
+        console.log("Diagnostic API :", data);
 
-      if (match) {
-        currentFixtureId = match.fixture.id;
-        const matchDate = new Date(match.fixture.date);
-
-        document.getElementById('team-home-name').innerText = match.teams.home.name;
-        document.getElementById('team-home-logo').src = match.teams.home.logo;
-        document.getElementById('team-away-name').innerText = match.teams.away.name;
-        document.getElementById('team-away-logo').src = match.teams.away.logo;
-
-        document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
-        document.getElementById('info-round').innerText = `${match.league.name || 'Compétition'} - ${match.league.round || ''}`;
-        document.getElementById('info-stadium').innerText = `${match.fixture.venue?.name || 'Stade'} (${match.fixture.venue?.city || ''})`;
-        document.getElementById('info-referee').innerText = match.fixture.referee || 'Non désigné';
-
-        startCountdown(matchDate);
-      } else {
-        document.getElementById('countdown').innerText = "Aucun match trouvé";
-      }
-      loadParieurs();
-    }
-
-    function startCountdown(targetDate) {
-      if (timerInterval) clearInterval(timerInterval);
-      function updateTimer() {
-        const diff = targetDate.getTime() - new Date().getTime();
-        if (diff <= 0) {
-          document.getElementById('countdown').innerText = "Match en cours !";
-          clearInterval(timerInterval);
+        if (data.contenuApi && data.contenuApi.errors && Object.keys(data.contenuApi.errors).length > 0) {
+          document.getElementById('countdown').innerText = "Erreur API : " + JSON.stringify(data.contenuApi.errors);
           return;
         }
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        document.getElementById('countdown').innerText = `${days}j ${hours}h ${minutes}m ${seconds}s`;
+
+        if (data.contenuApi && data.contenuApi.response && data.contenuApi.response.length > 0) {
+          const match = data.contenuApi.response[0];
+          currentFixtureId = match.fixture.id;
+          const matchDate = new Date(match.fixture.date);
+
+          document.getElementById('team-home-name').innerText = match.teams.home.name;
+          document.getElementById('team-home-logo').src = match.teams.home.logo;
+          document.getElementById('team-away-name').innerText = match.teams.away.name;
+          document.getElementById('team-away-logo').src = match.teams.away.logo;
+
+          document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+          document.getElementById('info-round').innerText = `${match.league.name} - ${match.league.round || ''}`;
+          document.getElementById('info-stadium').innerText = `${match.fixture.venue?.name || 'Stade'} (${match.fixture.venue?.city || ''})`;
+          document.getElementById('info-referee').innerText = match.fixture.referee || 'Non désigné';
+
+          document.getElementById('countdown').innerText = "Match chargé avec succès !";
+        } else {
+          document.getElementById('countdown').innerText = "Tableau vide (Code HTTP: " + data.statusHttp + ")";
+        }
+      } catch (e) {
+        document.getElementById('countdown').innerText = "Erreur de chargement du serveur";
+        console.error(e);
       }
-      updateTimer();
-      timerInterval = setInterval(updateTimer, 1000);
+      loadParieurs();
     }
 
     async function submitPronostic(e) {
