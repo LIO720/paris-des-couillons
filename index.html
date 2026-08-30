@@ -310,6 +310,16 @@
       }
     }
 
+    function closeClubModal() {
+      const modal = document.getElementById('club-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function closeHistoryModal() {
+      const modal = document.getElementById('history-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
     async function fetchAllBetsGlobalHistory() {
       const container = document.getElementById('all-bets-container');
       if (!container) return;
@@ -323,7 +333,6 @@
           .order('id', { ascending: false });
 
         if (error || !pronos || pronos.length === 0) {
-          // Si aucun pari en base, on remet le stockage local de la cagnotte à 0 propre
           localStorage.removeItem('cagnotte_precedente');
           container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Aucun pari enregistré pour le moment.</span>`;
           return;
@@ -354,9 +363,9 @@
               const homeName = match ? match.teams.home.name : "Équipe domicile";
               const awayName = match ? match.teams.away.name : "Équipe extérieure";
               const matchDate = match ? new Date(match.fixture.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : "Date inconnue";
-              const hGoals = match && match.goals.home !== null ? match.goals.home : '-';
-              const aGoals = match && match.goals.away !== null ? match.goals.away : '-';
               const isFinished = match && match.fixture.status.short === 'FT';
+              const hGoals = isFinished && match.goals.home !== null ? match.goals.home : '-';
+              const aGoals = isFinished && match.goals.away !== null ? match.goals.away : '-';
 
               let isExact = false;
               if (isFinished && match.goals.home !== null && match.goals.away !== null) {
@@ -376,8 +385,8 @@
                       ${isExact ? '<span class="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black text-[9px] uppercase">Vainqueur 🏆</span>' : ''}
                     </div>
                     <div class="flex items-center space-x-3 shrink-0">
-                      <span class="text-[10px] text-slate-400">Score réel: <strong class="text-amber-400">${hGoals}-${aGoals}</strong></span>
-                      <span class="bg-blue-950/90 text-blue-300 px-2 py-0.5 rounded font-mono font-bold border border-blue-800/50">Prono: ${p.score_parier}</span>
+                      ${isFinished ? `<span class="text-[10px] text-slate-400">Score réel: <strong class="text-amber-400">${hGoals}-${aGoals}</strong></span>` : '<span class="text-[10px] text-slate-400 italic">Match en cours / à venir</span>'}
+                      <span class="bg-blue-950/90 text-blue-300 px-2 py-0.5 rounded font-mono font-bold border border-blue-800/50">Prono: ${isFinished ? p.score_parier : 'Masqué 🔒'}</span>
                       <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
                     </div>
                   </div>
@@ -502,6 +511,177 @@
       }
     }
 
+    async function initMatchdaysNav() {
+      const navContainer = document.getElementById('matchdays-nav');
+      const resultsContainer = document.getElementById('ai-resultats-container');
+      if (!navContainer || !resultsContainer) return;
+
+      if (allClFixtures.length === 0) {
+        resultsContainer.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Chargement du calendrier de la Ligue des Champions...</span>`;
+        try {
+          const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=2&season=2026`, {
+            headers: { "x-apisports-key": API_FOOTBALL_KEY }
+          });
+          const data = await response.json();
+          if (data.response) {
+            allClFixtures = data.response.filter(m => {
+              const r = (m.league.round || '').toLowerCase();
+              return !r.includes('qualifying') && !r.includes('preliminary') && !r.includes('play-off') && !r.includes('playoffs') && !r.includes('barrage') && !r.includes('knockout') && !r.includes('round of');
+            });
+          }
+        } catch (err) {
+          resultsContainer.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center py-8">Erreur de chargement du calendrier.</span>`;
+          return;
+        }
+      }
+
+      matchdaysChunks = [];
+      for (let i = 0; i < allClFixtures.length; i += 18) {
+        matchdaysChunks.push(allClFixtures.slice(i, i + 18));
+      }
+
+      if (matchdaysChunks.length === 0) {
+        resultsContainer.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Calendrier officiel de la Journée en attente de l'UEFA.</span>`;
+        return;
+      }
+
+      navContainer.innerHTML = matchdaysChunks.map((chunk, index) => `
+        <button type="button" onclick="selectMatchday(${index})" id="btn-j-${index}" class="px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition ${index === 0 ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-950 text-slate-400 border border-slate-800'} cursor-pointer">
+          J${index + 1}
+        </button>
+      `).join('');
+
+      selectMatchday(0);
+    }
+
+    function selectMatchday(index) {
+      matchdaysChunks.forEach((_, i) => {
+        const btn = document.getElementById(`btn-j-${i}`);
+        if (btn) {
+          btn.className = i === index ? "px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer" : "px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition bg-slate-950 text-slate-400 border border-slate-800 cursor-pointer";
+        }
+      });
+
+      const resultsContainer = document.getElementById('ai-resultats-container');
+      const matches = matchdaysChunks[index] || [];
+
+      if (matches.length === 0) {
+        resultsContainer.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Calendrier officiel de la Journée ${index + 1} en attente de l'UEFA.</span>`;
+        return;
+      }
+
+      resultsContainer.innerHTML = `
+        <div class="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+          ${matches.map(m => {
+            const home = m.teams.home;
+            const away = m.teams.away;
+            const status = m.fixture.status.short;
+            const isFinished = (status === 'FT');
+            const goalsH = isFinished && m.goals.home !== null ? m.goals.home : '-';
+            const goalsA = isFinished && m.goals.away !== null ? m.goals.away : '-';
+
+            return `
+              <div onclick="openMatchHistory(${m.fixture.id})" class="bg-slate-950/75 border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 flex items-center justify-between text-xs cursor-pointer transition shadow-md">
+                <div class="flex items-center space-x-2 w-5/12 truncate">
+                  <img src="${home.logo}" class="w-5 h-5 object-contain">
+                  <span class="truncate font-semibold text-slate-200">${home.name}</span>
+                </div>
+                <div class="text-center w-2/12">
+                  <span class="bg-slate-900 border border-slate-700 px-2 py-1 rounded font-bold text-amber-400">${goalsH} - ${goalsA}</span>
+                  <span class="block text-[9px] text-slate-400 mt-0.5">${isFinished ? 'Terminé' : 'À venir'}</span>
+                </div>
+                <div class="flex items-center justify-end space-x-2 w-5/12 truncate text-right">
+                  <span class="truncate font-semibold text-slate-200">${away.name}</span>
+                  <img src="${away.logo}" class="w-5 h-5 object-contain">
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    async function openMatchHistory(fixtureId) {
+      const modal = document.getElementById('history-modal');
+      const content = document.getElementById('history-modal-content');
+      if (!modal || !content) return;
+
+      modal.classList.remove('hidden');
+      content.innerHTML = `<div class="text-center py-10 text-slate-400 text-xs">Chargement des paris du match...</div>`;
+
+      const match = allClFixtures.find(m => m.fixture.id === fixtureId);
+      if (!match) {
+        content.innerHTML = `<div class="text-center text-red-400 py-8 text-xs">Match introuvable.</div>`;
+        return;
+      }
+
+      const home = match.teams.home;
+      const away = match.teams.away;
+      const isFinished = match.fixture.status.short === 'FT';
+      const goalsH = isFinished && match.goals.home !== null ? match.goals.home : '-';
+      const goalsA = isFinished && match.goals.away !== null ? match.goals.away : '-';
+      const matchDate = new Date(match.fixture.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+      try {
+        const { data: pronos, error } = await supabaseClient
+          .from('pronostics')
+          .select('*')
+          .eq('fixture_id', fixtureId);
+
+        content.innerHTML = `
+          <div class="text-center space-y-2 border-b border-slate-800 pb-4">
+            <div class="flex items-center justify-between px-2">
+              <div class="flex flex-col items-center space-y-1 w-5/12 text-center">
+                <img src="${home.logo}" class="w-10 h-10 object-contain">
+                <span class="text-xs font-bold text-white truncate w-full">${home.name}</span>
+              </div>
+              <div class="text-center w-2/12">
+                ${isFinished ? `
+                  <span class="bg-slate-950 border border-slate-700 px-2 py-1 rounded font-black text-amber-400 text-sm">${goalsH} - ${goalsA}</span>
+                  <span class="block text-[9px] text-slate-400 mt-1 uppercase">Terminé</span>
+                ` : `
+                  <span class="text-xs font-black text-amber-400">VS</span>
+                  <span class="block text-[9px] text-slate-400 mt-1">${matchDate}</span>
+                `}
+              </div>
+              <div class="flex flex-col items-center space-y-1 w-5/12 text-center">
+                <img src="${away.logo}" class="w-10 h-10 object-contain">
+                <span class="text-xs font-bold text-white truncate w-full">${away.name}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-[11px] font-bold text-slate-300 uppercase tracking-wider text-center">Paris enregistrés (${pronos ? pronos.length : 0})</h4>
+            <div class="max-h-60 overflow-y-auto space-y-1.5 pr-1">
+              ${pronos && pronos.length > 0 ? pronos.map(p => {
+                let isExact = false;
+                if (isFinished && match.goals.home !== null && match.goals.away !== null) {
+                  const [ph, pa] = p.score_parier.split('-').map(Number);
+                  isExact = (ph === match.goals.home && pa === match.goals.away);
+                }
+                return `
+                  <div class="bg-slate-950/75 border ${isExact ? 'border-amber-500/80 bg-amber-500/10' : 'border-slate-800'} rounded-2xl p-2.5 flex items-center justify-between text-xs">
+                    <div class="flex items-center space-x-2 truncate">
+                      <span class="font-bold text-slate-100">${p.nom_ami}</span>
+                      ${isExact ? '<span class="bg-amber-500 text-slate-950 px-1 py-0.5 rounded font-black text-[9px] uppercase">🏆</span>' : ''}
+                    </div>
+                    <div class="flex items-center space-x-3 shrink-0">
+                      ${isFinished ? `<span class="text-[10px] text-slate-400">Réel: <strong class="text-amber-400">${match.goals.home}-${match.goals.away}</strong></span>` : ''}
+                      <span class="bg-blue-950/90 text-blue-300 px-2 py-0.5 rounded font-mono font-bold border border-blue-800/50">Prono: ${isFinished ? p.score_parier : 'Masqué 🔒'}</span>
+                      <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
+                    </div>
+                  </div>
+                `;
+              }).join('') : `<span class="text-slate-400 italic text-[11px] block text-center py-4">Aucun pari pour ce match.</span>`}
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        content.innerHTML = `<div class="text-center text-red-400 py-8 text-xs">Erreur lors du chargement des paris.</div>`;
+      }
+    }
+
     async function openClubModal(teamId) {
       const modal = document.getElementById('club-modal');
       const content = document.getElementById('club-modal-content');
@@ -525,528 +705,210 @@
           const item = dataTeam.response[0];
           const team = item.team;
           const venue = item.venue;
-          const stats = dataStats.response || null;
           const squadList = dataSquad.response && dataSquad.response.length > 0 ? dataSquad.response[0].players : [];
 
           content.innerHTML = `
-            <div class="flex items-center space-x-4 bg-slate-950/70 p-4 rounded-2xl border border-slate-800">
-              <img src="${team.logo}" alt="${team.name}" class="w-16 h-16 object-contain drop-shadow-lg">
+            <div class="flex items-center space-x-4 border-b border-slate-800 pb-4">
+              <img src="${team.logo}" alt="${team.name}" class="w-16 h-16 object-contain bg-slate-950 p-2 rounded-2xl border border-slate-800">
               <div>
-                <h2 class="text-base font-black text-white uppercase">${team.name}</h2>
-                <p class="text-xs text-slate-400">Pays : <span class="text-slate-200 font-semibold">${team.country}</span> | Fondé en : <span class="text-slate-200 font-semibold">${team.founded || 'N/C'}</span></p>
+                <h3 class="text-base font-black text-white">${team.name}</h3>
+                <p class="text-xs text-slate-400">${team.country} • Fondé en ${team.founded || 'N/C'}</p>
               </div>
             </div>
-
             ${venue ? `
-            <div class="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-2">
-              <h3 class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Stade Officiel</h3>
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-400">Nom du Stade</span>
-                <span class="font-semibold text-white">${venue.name}</span>
+              <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3 space-y-1 text-xs">
+                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Stade officiel</span>
+                <p class="font-semibold text-white">${venue.name} (${venue.city})</p>
+                <p class="text-[11px] text-slate-400">Capacité : ${venue.capacity ? venue.capacity.toLocaleString() : 'N/C'} places</p>
               </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-400">Ville</span>
-                <span class="font-semibold text-white">${venue.city}</span>
-              </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-400">Capacité</span>
-                <span class="font-semibold text-amber-400">${venue.capacity ? venue.capacity.toLocaleString() + ' places' : 'N/C'}</span>
-              </div>
-              ${venue.image ? `<img src="${venue.image}" class="w-full h-32 object-cover rounded-xl mt-2 border border-slate-800" alt="Stade">` : ''}
-            </div>` : ''}
-
-            <div class="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-3">
-              <h3 class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Statistiques (Champions League)</h3>
-              <div class="grid grid-cols-2 gap-2 text-center">
-                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                  <span class="block text-[10px] text-slate-400">Forme récente</span>
-                  <span class="text-xs font-mono font-bold text-slate-200 tracking-wider">${stats && stats.form ? stats.form : 'En cours'}</span>
-                </div>
-                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                  <span class="block text-[10px] text-slate-400">Clean Sheets</span>
-                  <span class="text-xs font-bold text-emerald-400">${stats && stats.clean_sheet ? stats.clean_sheet.total : 0}</span>
-                </div>
-                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                  <span class="block text-[10px] text-slate-400">Buts marqués</span>
-                  <span class="text-xs font-bold text-amber-400">${stats && stats.goals ? stats.goals.for.total.total : 0}</span>
-                </div>
-                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                  <span class="block text-[10px] text-slate-400">Buts encaissés</span>
-                  <span class="text-xs font-bold text-rose-400">${stats && stats.goals && stats.goals.against ? stats.goals.against.total.total : 0}</span>
-                </div>
+            ` : ''}
+            <div class="space-y-2">
+              <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">Effectif (${squadList.length} joueurs)</span>
+              <div class="max-h-60 overflow-y-auto space-y-1 pr-1">
+                ${squadList.length > 0 ? squadList.map(p => `
+                  <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl px-3 py-2 flex items-center justify-between text-xs">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-6 h-6 rounded-lg bg-blue-950 border border-blue-800 text-blue-300 flex items-center justify-center font-bold text-[10px]">${p.number !== null ? p.number : '-'}</span>
+                      <span class="font-semibold text-slate-200">${p.name}</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 uppercase">${p.position}</span>
+                  </div>
+                `).join('') : '<span class="text-slate-400 italic text-xs">Aucun joueur trouvé.</span>'}
               </div>
             </div>
-
-            ${squadList.length > 0 ? `
-            <div class="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-3">
-              <h3 class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Effectif (${squadList.length} joueurs)</h3>
-              <div class="max-h-56 overflow-y-auto space-y-1.5 pr-1">
-                ${squadList.map(p => `
-                  <div class="flex items-center justify-between bg-slate-900 p-2 rounded-xl border border-slate-800 text-xs">
-                    <div class="flex items-center space-x-2.5">
-                      <img src="${p.photo}" class="w-7 h-7 rounded-full object-cover bg-slate-800" alt="">
-                      <div>
-                        <span class="font-bold text-slate-200 block truncate max-w-[180px]">${p.name}</span>
-                        <span class="text-[10px] text-slate-400">${p.position} ${p.number ? '• #' + p.number : ''}</span>
-                      </div>
-                    </div>
-                    <span class="text-[11px] text-slate-400">${p.age ? p.age + ' ans' : ''}</span>
-                  </div>
-                `).join('')}
-              </div>
-            </div>` : ''}
           `;
         } else {
-          content.innerHTML = `<p class="text-xs text-red-400 text-center py-6">Impossible de charger les données de ce club.</p>`;
+          content.innerHTML = `<div class="text-center text-red-400 py-8 text-xs">Impossible de charger les informations de ce club.</div>`;
         }
       } catch (err) {
-        content.innerHTML = `<p class="text-xs text-red-400 text-center py-6">Erreur lors de la récupération des informations.</p>`;
+        content.innerHTML = `<div class="text-center text-red-400 py-8 text-xs">Erreur lors de la récupération des données.</div>`;
       }
     }
 
-    function closeClubModal() {
-      const modal = document.getElementById('club-modal');
-      if (modal) modal.classList.add('hidden');
-    }
+    async function loadParieurs() {
+      const container = document.getElementById('parieurs-list');
+      if (!container) return;
 
-    async function openMatchHistoryModal(fixtureId, homeName, awayName, homeLogo, awayLogo, matchDateStr, hGoals, aGoals, statusShort) {
-      const modal = document.getElementById('history-modal');
-      const content = document.getElementById('history-modal-content');
-      if (!modal || !content) return;
-
-      modal.classList.remove('hidden');
-      content.innerHTML = `<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-7 w-7 border-4 border-blue-500 border-t-transparent"></div><p class="text-xs text-slate-400 mt-2">Chargement des paris de ce match...</p></div>`;
+      if (!currentFixtureId) {
+        container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun match actif.</span>`;
+        return;
+      }
 
       try {
-        const { data, error } = await supabaseClient
+        const { data: pronos, error } = await supabaseClient
           .from('pronostics')
           .select('*')
-          .eq('fixture_id', fixtureId);
+          .eq('fixture_id', currentFixtureId);
 
-        let firstGoalMin = null;
-        if (statusShort === 'FT') {
-          try {
-            const evRes = await fetch(`https://v3.football.api-sports.io/fixtures/events?fixture=${fixtureId}`, {
-              headers: { "x-apisports-key": API_FOOTBALL_KEY }
-            });
-            const evData = await evRes.json();
-            if (evData.response) {
-              const goals = evData.response.filter(e => e.type === 'Goal' && e.detail !== 'Missed Penalty');
-              if (goals.length > 0) {
-                goals.sort((a, b) => a.time.elapsed - b.time.elapsed);
-                firstGoalMin = goals[0].time.elapsed;
-              } else {
-                firstGoalMin = 0;
-              }
+        if (error || !pronos || pronos.length === 0) {
+          container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun pari validé pour ce match.</span>`;
+          document.getElementById('cagnotte').innerText = (localStorage.getItem('cagnotte_precedente') || '0') + ' €';
+          return;
+        }
+
+        const cagnotteTotal = pronos.length * 5;
+        document.getElementById('cagnotte').innerText = cagnotteTotal + ' €';
+
+        container.innerHTML = pronos.map(p => `
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-200">${p.nom_ami}</span>
+            <span class="text-slate-400 font-mono">Prono masqué 🔒</span>
+          </div>
+        `).join('');
+
+        if (currentMatchFinished) {
+          let exactWinner = null;
+          pronos.forEach(p => {
+            const [ph, pa] = p.score_parier.split('-').map(Number);
+            if (ph === realHomeGoals && pa === realAwayGoals) {
+              exactWinner = p;
             }
-          } catch (e) {
-            firstGoalMin = 0;
+          });
+
+          const aiContainer = document.getElementById('winner-ai-comment-container');
+          const aiText = document.getElementById('winner-ai-comment-text');
+
+          if (exactWinner) {
+            aiText.innerText = `Quel flair de ${exactWinner.nom_ami} ! Il a trouvé le score exact (${exactWinner.score_parier}) et empoche la cagnotte !`;
+            aiContainer.classList.remove('hidden');
+          } else {
+            aiText.innerText = `Personne n'a trouvé le score exact (${realHomeGoals}-${realAwayGoals}). La cagnotte est reportée au prochain match !`;
+            aiContainer.classList.remove('hidden');
           }
         }
-
-        const count = data ? data.length : 0;
-        let processedData = [];
-        if (data && count > 0) {
-          processedData = data.map(p => {
-            const [ph, pa] = p.score_parier.split('-').map(Number);
-            const isExactScore = (statusShort === 'FT' && ph === hGoals && pa === aGoals);
-            const minuteDiff = firstGoalMin !== null ? Math.abs(p.minute_1er_but - firstGoalMin) : 0;
-            return { ...p, isExactScore, minuteDiff };
-          });
-
-          processedData.sort((a, b) => {
-            if (a.isExactScore && !b.isExactScore) return -1;
-            if (!a.isExactScore && b.isExactScore) return 1;
-            return a.minuteDiff - b.minuteDiff;
-          });
-        }
-
-        const aUnVraiGagnant = statusShort === 'FT' && count > 0 && processedData[0].isExactScore;
-
-        content.innerHTML = `
-          <div class="text-center space-y-2 border-b border-slate-800 pb-4">
-            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest block">${matchDateStr}</span>
-            <div class="flex items-center justify-between px-2">
-              <div class="flex flex-col items-center w-1/3 truncate">
-                <img src="${homeLogo}" class="w-8 h-8 object-contain mb-1" alt="">
-                <span class="text-xs font-bold text-slate-200 truncate w-full">${homeName}</span>
-              </div>
-              <div class="text-sm font-black text-amber-400 w-1/3 text-center">
-                ${hGoals !== null ? hGoals + ' - ' + aGoals : 'VS'}
-              </div>
-              <div class="flex flex-col items-center w-1/3 truncate">
-                <img src="${awayLogo}" class="w-8 h-8 object-contain mb-1" alt="">
-                <span class="text-xs font-bold text-slate-200 truncate w-full">${awayName}</span>
-              </div>
-            </div>
-            <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-semibold inline-block">
-              ${statusShort === 'FT' ? 'Match Terminé' : statusShort === 'NS' ? 'À venir' : statusShort}
-            </span>
-          </div>
-
-          <div class="space-y-3 pt-1">
-            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Paris enregistrés (${count})</h3>
-            
-            ${count === 0 ? `
-              <p class="text-center text-xs text-slate-400 italic py-6">Aucun pari enregistré pour ce match.</p>
-            ` : `
-              <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                ${processedData.map((p, index) => {
-                  const isWinner = aUnVraiGagnant && index === 0;
-                  return `
-                    <div class="flex items-center justify-between p-2.5 rounded-xl border text-xs ${isWinner ? 'bg-amber-500/20 border-amber-500/80 shadow-lg' : 'bg-slate-950/70 border-slate-800'}">
-                      <div class="flex items-center space-x-2 truncate">
-                        <span class="font-bold text-slate-200 truncate">${p.nom_ami}</span>
-                        ${isWinner ? '<span class="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black text-[9px] uppercase">Gagnant</span>' : ''}
-                      </div>
-                      <div class="flex items-center space-x-3 shrink-0">
-                        <span class="bg-blue-950/80 text-blue-300 px-2 py-0.5 rounded font-mono font-bold border border-blue-800/50">${p.score_parier}</span>
-                        <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            `}
-          </div>
-        `;
       } catch (err) {
-        content.innerHTML = `<p class="text-xs text-red-400 text-center py-6">Erreur lors du chargement des paris.</p>`;
+        container.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center">Erreur de chargement des parieurs.</span>`;
       }
-    }
-
-    function closeHistoryModal() {
-      const modal = document.getElementById('history-modal');
-      if (modal) modal.classList.add('hidden');
     }
 
     function startCountdown(targetDate) {
-      setInterval(() => {
+      const countdownEl = document.getElementById('countdown');
+      if (!countdownEl) return;
+
+      function update() {
         const now = new Date();
         const diff = targetDate - now;
-        const el = document.getElementById('countdown');
-        if (!el) return;
 
         if (diff <= 0) {
-          el.innerText = "Match en cours ou terminé !";
+          countdownEl.innerText = "MATCH EN COURS OU TERMINÉ";
           return;
         }
 
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const mins = Math.floor((diff / 1000 / 60) % 60);
-        const secs = Math.floor((diff / 1000) % 60);
+        const minutes = Math.floor((diff / 1000 / 60) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
 
-        el.innerText = `${days}j ${hours}h ${mins}m ${secs}s`;
-      }, 1000);
-    }
-
-    async function initMatchdaysNav() {
-      const nav = document.getElementById('matchdays-nav');
-      if (!nav) return;
-
-      if (allClFixtures.length === 0) {
-        try {
-          const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=2&season=2026`, {
-            headers: { "x-apisports-key": API_FOOTBALL_KEY }
-          });
-          const data = await response.json();
-          if (data.response) {
-            allClFixtures = data.response.filter(m => {
-              const r = (m.league.round || '').toLowerCase();
-              return !r.includes('qualifying') && 
-                     !r.includes('preliminary') && 
-                     !r.includes('play-off') && 
-                     !r.includes('playoffs') && 
-                     !r.includes('barrage') && 
-                     !r.includes('knockout') &&
-                     !r.includes('round of');
-            });
-            
-            allClFixtures.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
-
-            matchdaysChunks = [];
-            const chunkSize = 18;
-            for (let i = 0; i < allClFixtures.length; i += chunkSize) {
-              matchdaysChunks.push(allClFixtures.slice(i, i + chunkSize));
-            }
-          }
-        } catch (err) {
-          console.error("Erreur chargement fixtures", err);
-        }
+        countdownEl.innerText = `${days}j ${hours}h ${minutes}m ${seconds}s`;
       }
 
-      if (nav.children.length === 0) {
-        nav.innerHTML = '';
-        for (let i = 1; i <= 8; i++) {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.id = `btn-j-${i}`;
-          btn.className = `px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-slate-800 text-slate-300 border border-slate-700 shrink-0 cursor-pointer`;
-          btn.innerText = `J${i}`;
-          btn.onclick = () => fetchMatchday(i);
-          nav.appendChild(btn);
-        }
-      }
-      fetchMatchday(1);
-    }
-
-    async function fetchMatchday(dayNum) {
-      const container = document.getElementById('ai-resultats-container');
-      if (!container) return;
-
-      container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Chargement Journée ${dayNum}...</span>`;
-
-      for (let i = 1; i <= 8; i++) {
-        const b = document.getElementById(`btn-j-${i}`);
-        if (b) {
-          if (i === dayNum) {
-            b.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-blue-600 text-white border border-blue-500 shrink-0 cursor-pointer shadow-lg";
-          } else {
-            b.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-slate-800 text-slate-300 border border-slate-700 shrink-0 cursor-pointer";
-          }
-        }
-      }
-
-      const matchesToShow = matchdaysChunks[dayNum - 1] || [];
-
-      if (matchesToShow && matchesToShow.length > 0) {
-        container.innerHTML = `
-          <div class="text-center pb-1">
-            <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Journée ${dayNum} sur 8 (Cliquez sur un match)</span>
-          </div>
-          <div class="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
-            ${matchesToShow.map(m => {
-              const matchDate = new Date(m.fixture.date);
-              const dateFormatted = matchDate.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-              const homeScore = m.goals.home !== null ? m.goals.home : '-';
-              const awayScore = m.goals.away !== null ? m.goals.away : '-';
-              const statusShort = m.fixture.status.short;
-              const statusText = statusShort === 'FT' ? 'Terminé' : statusShort === 'NS' ? 'À venir' : statusShort;
-
-              return `
-                <div onclick="openMatchHistoryModal(${m.fixture.id}, '${m.teams.home.name.replace(/'/g, "\\'")}', '${m.teams.away.name.replace(/'/g, "\\'")}', '${m.teams.home.logo}', '${m.teams.away.logo}', '${dateFormatted}', ${m.goals.home}, ${m.goals.away}, '${statusShort}')" 
-                     class="bg-slate-950/75 border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 flex flex-col space-y-1.5 text-xs shadow-md transition cursor-pointer transform hover:scale-[1.01]">
-                  <div class="flex justify-between items-center text-[10px] text-slate-400 border-b border-slate-800/60 pb-1">
-                    <span>${dateFormatted}</span>
-                    <span class="font-semibold text-blue-400 flex items-center space-x-1"><span>🔍 Voir les paris</span> • <span>${statusText}</span></span>
-                  </div>
-                  <div class="flex justify-between items-center">
-                    <div class="flex items-center space-x-2 w-[42%] truncate">
-                      <img src="${m.teams.home.logo}" class="w-5 h-5 object-contain shrink-0" alt="">
-                      <span class="truncate font-bold text-slate-200">${m.teams.home.name}</span>
-                    </div>
-                    <div class="w-[16%] text-center font-black text-amber-400 text-sm">
-                      ${homeScore} : ${awayScore}
-                    </div>
-                    <div class="flex items-center justify-end space-x-2 w-[42%] truncate">
-                      <span class="truncate font-bold text-slate-200 text-right">${m.teams.away.name}</span>
-                      <img src="${m.teams.away.logo}" class="w-5 h-5 object-contain shrink-0" alt="">
-                    </div>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        `;
-      } else {
-        container.innerHTML = `<div class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 text-center text-[11px] text-slate-400">Calendrier officiel de la Journée ${dayNum} en attente de l'UEFA.</div>`;
-      }
+      update();
+      setInterval(update, 1000);
     }
 
     async function fetchStandings() {
       const container = document.getElementById('standings-container');
-      if (!container || container.children.length > 1) return;
+      if (!container) return;
+
+      container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Chargement du classement...</span>`;
 
       try {
-        const response = await fetch(`https://v3.football.api-sports.io/standings?league=2&season=2026`, {
+        const res = await fetch(`https://v3.football.api-sports.io/standings?league=2&season=2026`, {
           headers: { "x-apisports-key": API_FOOTBALL_KEY }
         });
-        const data = await response.json();
+        const data = await res.json();
 
-        if (data.response && data.response.length > 0) {
+        if (data.response && data.response.length > 0 && data.response[0].league.standings) {
           const standings = data.response[0].league.standings[0];
-
           container.innerHTML = `
-            <div class="grid grid-cols-12 text-[10px] font-bold text-slate-400 uppercase pb-1 border-b border-slate-800 px-2">
-              <span class="col-span-1">#</span>
-              <span class="col-span-6">Équipe</span>
-              <span class="col-span-2 text-center">J</span>
-              <span class="col-span-3 text-right">Pts</span>
+            <div class="space-y-1">
+              ${standings.map(s => `
+                <div class="bg-slate-950/70 border border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between text-xs">
+                  <div class="flex items-center space-x-2 truncate">
+                    <span class="w-5 text-center font-bold text-slate-400 text-[11px]">${s.rank}</span>
+                    <img src="${s.team.logo}" class="w-5 h-5 object-contain">
+                    <span class="font-semibold text-slate-200 truncate">${s.team.name}</span>
+                  </div>
+                  <div class="flex items-center space-x-3 text-[11px]">
+                    <span class="text-slate-400">${s.played}j</span>
+                    <span class="font-black text-amber-400">${s.points} pts</span>
+                  </div>
+                </div>
+              `).join('')}
             </div>
-          ` + standings.map(team => `
-            <div class="grid grid-cols-12 items-center text-xs p-2 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:bg-slate-800/50 transition">
-              <span class="col-span-1 font-bold ${team.rank <= 8 ? 'text-emerald-400' : team.rank <= 24 ? 'text-blue-400' : 'text-slate-400'}">${team.rank}</span>
-              <div class="col-span-6 flex items-center space-x-2 truncate">
-                <img src="${team.team.logo}" alt="${team.team.name}" class="w-4 h-4 object-contain">
-                <span class="truncate font-medium text-slate-200">${team.team.name}</span>
-              </div>
-              <span class="col-span-2 text-center text-slate-400">${team.all.played}</span>
-              <span class="col-span-3 text-right font-black text-amber-400">${team.points}</span>
-            </div>
-          `).join('');
+          `;
         } else {
-          container.innerHTML = `<div class="text-center text-[11px] text-slate-400">Classement non disponible pour le moment.</div>`;
+          container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Classement non disponible.</span>`;
         }
       } catch (err) {
-        container.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center">Erreur de chargement du classement.</span>`;
+        container.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center py-8">Erreur lors du chargement du classement.</span>`;
       }
     }
 
-    async function loadParieurs() {
+    document.getElementById('prono-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const statusEl = document.getElementById('status');
+      const score1 = document.getElementById('score1').value;
+      const score2 = document.getElementById('score2').value;
+      const minute = document.getElementById('minute').value;
+      const nom = document.getElementById('nom').value.trim();
+
+      if (!currentFixtureId) {
+        statusEl.innerText = "Erreur : Aucun match actif trouvé.";
+        statusEl.className = "text-center text-[11px] font-semibold text-red-400";
+        return;
+      }
+
+      statusEl.innerText = "Enregistrement en cours...";
+      statusEl.className = "text-center text-[11px] font-semibold text-blue-400";
+
       try {
-        if (!currentFixtureId) return;
-
-        const { data, error } = await supabaseClient
+        const { error } = await supabaseClient
           .from('pronostics')
-          .select('*')
-          .eq('fixture_id', currentFixtureId);
+          .insert([{
+            fixture_id: currentFixtureId,
+            nom_ami: nom,
+            score_parier: `${score1}-${score2}`,
+            minute_1er_but: parseInt(minute)
+          }]);
 
-        const parieursList = document.getElementById('parieurs-list');
-        const cagnotteEl = document.getElementById('cagnotte');
-        const winnerCommentBlock = document.getElementById('winner-ai-comment-container');
-        const winnerCommentText = document.getElementById('winner-ai-comment-text');
-
-        if (error || !data || data.length === 0) {
-          // Sécurité automatique : si aucun pari, on réinitialise proprement le localStorage si la base est vide
-          const totalCheck = await supabaseClient.from('pronostics').select('*', { count: 'exact', head: true });
-          if (!totalCheck.count || totalCheck.count === 0) {
-            localStorage.removeItem('cagnotte_precedente');
-          }
-
-          if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun pari pour le moment</span>`;
-          if (cagnotteEl) {
-            const activeCagnotte = parseInt(localStorage.getItem('cagnotte_precedente') || '0');
-            cagnotteEl.innerText = `${activeCagnotte} €`;
-          }
-          if (winnerCommentBlock) winnerCommentBlock.classList.add('hidden');
-          return;
-        }
-
-        const count = data.length;
-
-        let cagnottePrecedente = parseInt(localStorage.getItem('cagnotte_precedente') || '0');
-        let montantTotalJeu = cagnottePrecedente + (count * 5);
-
-        let processedData = data.map(p => {
-          const [ph, pa] = p.score_parier.split('-').map(Number);
-          const isExactScore = (ph === realHomeGoals && pa === realAwayGoals);
-          const minuteDiff = realFirstGoalMinute !== null ? Math.abs(p.minute_1er_but - realFirstGoalMinute) : 0;
-          return { ...p, isExactScore, minuteDiff };
-        });
-
-        processedData.sort((a, b) => {
-          if (a.isExactScore && !b.isExactScore) return -1;
-          if (!a.isExactScore && b.isExactScore) return 1;
-          return a.minuteDiff - b.minuteDiff;
-        });
-
-        const aUnVraiGagnant = currentMatchFinished && count > 0 && processedData[0].isExactScore;
-
-        if (currentMatchFinished) {
-          if (count === 0 || !aUnVraiGagnant) {
-            localStorage.setItem('cagnotte_precedente', montantTotalJeu);
-            if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} € (Reporté)`;
-            
-            if (winnerCommentBlock && winnerCommentText) {
-              winnerCommentText.innerText = "PAS DE GAGNANT DE SCORE EXACT ! La cagnotte reste identique et se reporte pour le prochain match.";
-              winnerCommentBlock.classList.remove('hidden');
-            }
-          } else {
-            localStorage.setItem('cagnotte_precedente', 0);
-            if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} € (Remporté)`;
-
-            if (winnerCommentBlock && winnerCommentText) {
-              winnerCommentText.innerText = `"${processedData[0].nom_ami} a trouvé le score exact (${processedData[0].score_parier}) ! Il braque la caisse de ${montantTotalJeu} €."`;
-              winnerCommentBlock.classList.remove('hidden');
-            }
-          }
+        if (error) {
+          statusEl.innerText = "Erreur lors de l'enregistrement du prono.";
+          statusEl.className = "text-center text-[11px] font-semibold text-red-400";
         } else {
-          if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} €`;
-          if (winnerCommentBlock) winnerCommentBlock.classList.add('hidden');
+          statusEl.innerText = "Prono validé avec succès ! ⚽";
+          statusEl.className = "text-center text-[11px] font-semibold text-emerald-400";
+          loadParieurs();
         }
+      } catch (err) {
+        statusEl.innerText = "Erreur réseau.";
+        statusEl.className = "text-center text-[11px] font-semibold text-red-400";
+      }
+    });
 
-        if (parieursList) {
-          parieursList.innerHTML = processedData.map((p, index) => {
-            const isWinner = aUnVraiGagnant && index === 0;
-            return `
-              <div class="flex items-center justify-between p-2.5 rounded-xl border text-xs w-full shadow-inner ${isWinner ? 'bg-amber-500/20 border-amber-500/80 shadow-amber-500/20' : 'bg-slate-900/90 border-slate-800'}">
-                <div class="flex items-center space-x-2">
-                  <span class="font-bold text-slate-200">${p.nom_ami || 'Parieur'}</span>
-                  ${isWinner ? `<span class="bg-amber-500 text-slate-950 px-2 py-0.5 rounded-md font-black text-[10px] tracking-wider uppercase animate-pulse">🏆 Gagnant</span>` : ''}
-                </div>
-                <div class="flex items-center space-x-3">
-                  ${currentMatchFinished ? `
-                    <span class="bg-blue-950 text-blue-400 px-2 py-1 rounded-lg font-mono font-bold border border-blue-800/60">Prono : ${p.score_parier}</span>
-                    <span class="text-slate-400 text-[10px]">Min : <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
-                  ` : `
-                    <span class="bg-slate-800 text-slate-400 px-2.5 py-1 rounded-lg font-medium border border-slate-700 text-[10px]">🔒 Prono masqué</span>
-                  `}
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-      } catch (err) {}
-    }
-
-    const pronoForm = document.getElementById('prono-form');
-    if (pronoForm) {
-      pronoForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const status = document.getElementById('status');
-        if (!currentFixtureId) {
-          if (status) {
-            status.innerText = "Erreur : Match non chargé.";
-            status.className = "text-center text-[11px] font-semibold text-red-400";
-          }
-          return;
-        }
-
-        if (status) {
-          status.innerText = "Validation...";
-          status.className = "text-center text-[11px] font-semibold text-blue-400";
-        }
-
-        const nom = document.getElementById('nom').value.trim();
-        const score1 = document.getElementById('score1').value;
-        const score2 = document.getElementById('score2').value;
-        const minute = parseInt(document.getElementById('minute').value);
-        const scoreParier = `${score1}-${score2}`;
-
-        try {
-          const { error } = await supabaseClient.from('pronostics').insert([
-            { 
-              nom_ami: nom, 
-              score_parier: scoreParier, 
-              minute_1er_but: minute,
-              fixture_id: currentFixtureId 
-            }
-          ]);
-
-          if (error) {
-            if (status) {
-              status.innerText = "Erreur : " + error.message;
-              status.className = "text-center text-[11px] font-semibold text-red-400";
-            }
-          } else {
-            if (status) {
-              status.innerText = "Prono enregistré avec succès ! 🎉";
-              status.className = "text-center text-[11px] font-semibold text-green-400";
-            }
-            pronoForm.reset();
-            loadParieurs();
-          }
-        } catch (err) {
-          if (status) {
-            status.innerText = "Erreur de connexion.";
-            status.className = "text-center text-[11px] font-semibold text-red-400";
-          }
-        }
-      });
-    }
-
-    fetchNextPSGMatch();
+    window.onload = () => {
+      fetchNextPSGMatch();
+    };
   </script>
 </body>
 </html>
