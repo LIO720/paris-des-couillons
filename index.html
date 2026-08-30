@@ -3,180 +3,363 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Le Paris des Couillons</title>
+  <title>Paris des Couillons – Champions League</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>body { background-color: #0b132b; color: #ffffff; }</style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
-  <div class="w-full max-w-md bg-[#1c2541] rounded-2xl shadow-2xl overflow-hidden border border-slate-700">
-    <div class="p-6 text-center border-b border-slate-700">
-      <h1 class="text-2xl font-extrabold tracking-wider text-amber-400 uppercase">Le Paris des Couillons</h1>
-      <div class="mt-4 bg-[#0b132b] p-4 rounded-xl border border-slate-800">
-        <span class="text-xs uppercase tracking-widest text-slate-400 block mb-1">Cagnotte Actuelle</span>
-        <span id="cagnotte-amount" class="text-3xl font-black text-emerald-400">0 €</span>
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 relative overflow-x-hidden">
+
+  <!-- Arrière-plan Stade de Football -->
+  <div class="fixed inset-0 z-0 bg-slate-900 bg-cover bg-center bg-no-repeat scale-105" 
+       style="background-color: #064e3b; background-image: linear-gradient(to bottom, rgba(3, 7, 18, 0.8), rgba(2, 44, 34, 0.85)), url('https://images.unsplash.com/photo-1518604668838-89a1f24d7b6f?q=80&w=2070&auto=format&fit=crop');">
+    <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-[1px]"></div>
+  </div>
+
+  <div class="w-full max-w-md space-y-6 relative z-10">
+    
+    <!-- En-tête : Bannière Champions League -->
+    <div class="text-center space-y-3">
+      <div class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-900/90 via-blue-800 to-blue-900/90 border border-blue-500/50 shadow-2xl backdrop-blur-md flex items-center justify-center space-x-3">
+        <img src="https://media.api-sports.io/football/leagues/2.png" alt="UEFA Champions League" class="w-10 h-10 object-contain filter brightness-0 invert drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]">
+        <span class="text-lg font-black tracking-widest text-white uppercase drop-shadow-md">Champions League</span>
+      </div>
+
+      <div class="space-y-1">
+        <h1 class="text-xl font-black tracking-wider uppercase text-white drop-shadow-md">Le Paris des Couillons</h1>
+        <p class="text-[11px] font-medium text-slate-400 tracking-wider">développé par yosnick</p>
+      </div>
+
+      <!-- Barre de Navigation / 3 Onglets -->
+      <div class="flex justify-center space-x-1.5 pt-2">
+        <button type="button" onclick="switchTab('pronos')" id="btn-tab-pronos" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer">Pronos</button>
+        <button type="button" onclick="switchTab('infos')" id="btn-tab-infos" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Infos Match</button>
+        <button type="button" onclick="switchTab('resultats')" id="btn-tab-resultats" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Calendrier & Résultats</button>
+      </div>
+      
+      <!-- Cagnotte Globale -->
+      <div class="inline-block mt-1 px-6 py-2 rounded-xl bg-slate-900/90 border border-slate-700/80 shadow-lg backdrop-blur-md">
+        <span class="block text-[10px] text-slate-400 uppercase tracking-widest font-bold">Cagnotte en jeu (avec report)</span>
+        <span id="cagnotte" class="text-xl font-black text-amber-400">0 €</span>
       </div>
     </div>
 
-    <div class="flex border-b border-slate-700 bg-[#0b132b]/50">
-      <button id="tab-prono" onclick="switchTab('prono')" class="flex-1 py-3 text-sm font-bold text-center border-b-2 border-blue-500 text-blue-400">PRONOS</button>
-      <button id="tab-infos" onclick="switchTab('infos')" class="flex-1 py-3 text-sm font-bold text-center border-b-2 border-transparent text-slate-400 hover:text-white">INFOS MATCH</button>
-      <button id="tab-resultats" onclick="switchTab('resultats')" class="flex-1 py-3 text-sm font-bold text-center border-b-2 border-transparent text-slate-400 hover:text-white">RÉSULTATS J</button>
-    </div>
-
-    <div id="view-prono" class="p-6 space-y-6">
-      <div class="flex items-center justify-around bg-[#0b132b] p-4 rounded-xl border border-slate-800">
-        <div class="text-center w-1/3">
-          <img id="team-home-logo" src="https://media.api-sports.io/football/teams/85.png" alt="PSG" class="w-12 h-12 mx-auto object-contain mb-1">
-          <span id="team-home-name" class="text-xs font-bold block truncate">PSG</span>
-        </div>
-        <div class="text-center w-1/3"><span class="text-amber-400 font-black text-lg">VS</span></div>
-        <div class="text-center w-1/3">
-          <img id="team-away-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'%3E%3Cpath d='M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-3z'/%3E%3C/svg%3E" alt="Adversaire" class="w-12 h-12 mx-auto object-contain mb-1">
-          <span id="team-away-name" class="text-xs font-bold block truncate">Prochain adversaire</span>
+    <!-- ONGLET 1 : PRONOSTICS -->
+    <main id="tab-pronos" class="bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
+      
+      <div class="text-center space-y-1">
+        <span id="match-subtitle" class="text-[11px] font-bold tracking-widest text-blue-400 uppercase">PROCHAIN MATCH</span>
+        <p class="text-xs text-slate-300">Coup d'envoi dans</p>
+        <div id="countdown" class="text-lg font-black text-amber-400 py-1">
+          Chargement du décompte...
         </div>
       </div>
 
-      <div class="bg-[#0b132b] p-3 rounded-lg text-center border border-slate-800">
-        <span class="text-[10px] uppercase text-slate-400 block tracking-wider">Coup d'envoi dans</span>
-        <span id="countdown" class="text-sm font-bold text-blue-400">Chargement...</span>
+      <!-- Équipes -->
+      <div class="flex items-center justify-between px-4 py-3 bg-slate-950/70 rounded-2xl border border-slate-800 shadow-inner">
+        <div class="flex flex-col items-center space-y-2 w-1/3 text-center">
+          <img id="team-home-logo" src="https://media.api-sports.io/football/teams/85.png" alt="PSG" class="w-12 h-12 object-contain filter drop-shadow-lg">
+          <span id="team-home-name" class="text-xs font-bold text-slate-200 truncate w-full">PSG</span>
+        </div>
+        <div class="text-xs font-black text-slate-400 tracking-widest">VS</div>
+        <div class="flex flex-col items-center space-y-2 w-1/3 text-center">
+          <div class="w-12 h-12 flex items-center justify-center bg-slate-900 rounded-full border border-slate-700 shadow-inner p-1">
+            <img id="team-away-logo" src="https://media.api-sports.io/football/leagues/2.png" alt="Champions League" class="w-10 h-10 object-contain filter brightness-0 invert drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]">
+          </div>
+          <span id="team-away-name" class="text-xs font-bold text-slate-300 truncate w-full">En attente UEFA</span>
+        </div>
       </div>
 
-      <form id="form-prono" onsubmit="submitPronostic(event)" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold mb-1 text-slate-300">Ton Nom / Pseudo</label>
-          <input type="text" id="nom-ami" required class="w-full bg-[#0b132b] border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold mb-1 text-slate-300">Buts Domicile</label>
-            <input type="number" id="score-home" min="0" required class="w-full bg-[#0b132b] border border-slate-700 rounded-lg p-2.5 text-sm text-center text-white focus:outline-none focus:border-blue-500">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold mb-1 text-slate-300">Buts Extérieur</label>
-            <input type="number" id="score-away" min="0" required class="w-full bg-[#0b132b] border border-slate-700 rounded-lg p-2.5 text-sm text-center text-white focus:outline-none focus:border-blue-500">
+      <!-- Formulaire Pronostic -->
+      <form id="prono-form" class="space-y-4">
+        <div class="text-center">
+          <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-2">Votre Pronostic</label>
+          <div class="flex items-center justify-center space-x-3">
+            <input type="number" id="score1" min="0" max="20" required value="0" class="w-16 h-12 text-center text-xl font-bold bg-slate-950/90 border border-slate-700 rounded-xl focus:border-blue-500 focus:outline-none transition">
+            <span class="text-slate-400 font-bold">-</span>
+            <input type="number" id="score2" min="0" max="20" required value="0" class="w-16 h-12 text-center text-xl font-bold bg-slate-950/90 border border-slate-700 rounded-xl focus:border-blue-500 focus:outline-none transition">
           </div>
         </div>
+
         <div>
-          <label class="block text-xs font-semibold mb-1 text-slate-300">Minute 1er But (départage)</label>
-          <input type="number" id="minute-1er-but" min="1" max="120" required class="w-full bg-[#0b132b] border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+          <input type="number" id="minute" min="0" max="120" required placeholder="Minute du 1er but (ex: 34)" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-center focus:border-blue-500 focus:outline-none placeholder-slate-400 transition">
         </div>
-        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-colors">Valider mon pronostic</button>
+
+        <div>
+          <input type="text" id="nom" required placeholder="Votre Prénom" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-center focus:border-blue-500 focus:outline-none placeholder-slate-400 transition">
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3 text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-blue-600/30 active:scale-[0.98] cursor-pointer">
+          Valider mon prono
+        </button>
       </form>
 
-      <div class="pt-4 border-t border-slate-700">
-        <h3 class="text-xs font-bold uppercase text-slate-400 mb-3 tracking-wider">Pronostiqueurs inscrits :</h3>
-        <ul id="list-parieurs" class="space-y-2 text-sm text-slate-300">
-          <li class="text-slate-500 italic text-xs">Chargement des pronostics...</li>
-        </ul>
-      </div>
-    </div>
+      <div id="status" class="text-center text-[11px] font-semibold"></div>
 
-    <div id="view-infos" class="p-6 space-y-4 hidden">
-      <div class="bg-[#0b132b] p-4 rounded-xl border border-slate-800 space-y-3 text-sm">
-        <div><span class="text-slate-400 block text-xs">Date & Heure :</span> <strong id="info-date">-</strong></div>
-        <div><span class="text-slate-400 block text-xs">Compétition :</span> <strong id="info-round">-</strong></div>
-        <div><span class="text-slate-400 block text-xs">Stade :</span> <strong id="info-stadium">-</strong></div>
-        <div><span class="text-slate-400 block text-xs">Arbitre principal :</span> <strong id="info-referee">-</strong></div>
+      <!-- Parieurs du match actuel -->
+      <div class="border-t border-slate-800 pt-4">
+        <h2 class="text-slate-300 text-[11px] uppercase font-bold tracking-wider text-center mb-2.5">Qui a parié ?</h2>
+        <div id="parieurs-list" class="flex flex-wrap gap-1.5 justify-center">
+          <span class="text-slate-400 italic text-[11px]">Chargement...</span>
+        </div>
       </div>
-    </div>
+    </main>
 
-    <div id="view-resultats" class="p-6 hidden">
-      <p class="text-center text-slate-400 text-sm italic">Les résultats seront mis à jour après la fin de la rencontre.</p>
-    </div>
+    <!-- ONGLET 2 : INFOS MATCH -->
+    <main id="tab-infos" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-5">
+      <div class="text-center space-y-1">
+        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Informations du Match</h2>
+        <p class="text-[11px] text-slate-300">Détails officiels de la rencontre</p>
+      </div>
+
+      <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs">
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Compétition</span>
+          <span class="font-semibold text-white" id="info-competition">UEFA Champions League</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Tour / Journée</span>
+          <span class="font-semibold text-white" id="info-round">Phase de ligue</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Date du match</span>
+          <span class="font-semibold text-white" id="info-date">En attente UEFA</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Stade</span>
+          <span class="font-semibold text-white" id="info-stadium">Parc des Princes / Extérieur</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Diffuseur TV</span>
+          <span class="font-semibold text-amber-400">Canal+ / RMC Sport</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- ONGLET 3 : RÉSULTATS & CALENDRIER 8 JOURNÉES -->
+    <main id="tab-resultats" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
+      <div class="text-center space-y-2">
+        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Calendrier des 8 Journées</h2>
+        <p class="text-[11px] text-slate-300">Navigation de la Journée 1 à 8 (Connecté à l'API)</p>
+      </div>
+
+      <!-- Boutons des 8 Journées -->
+      <div class="flex overflow-x-auto gap-1.5 pb-2 scrollbar-none" id="matchdays-nav">
+        <!-- Généré dynamiquement en JS -->
+      </div>
+
+      <div id="ai-resultats-container" class="space-y-3">
+        <span class="text-slate-400 italic text-[11px] block text-center">Sélectionnez une journée ci-dessus.</span>
+      </div>
+    </main>
+
   </div>
 
   <script>
     const SUPABASE_URL = "https://bgcuxroguucumbveptvb.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_MuYlr1whhZ7eFS1D8LoP7Q_0NV70N1X"; 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    let currentFixtureId = null;
+    const SUPABASE_KEY = "sb_publishable_MuYlr1whhZ7eFS1D8LoP7Q_0NV70N1X";
+    const MISE_PAR_PERSONNE = 5;
+    const API_FOOTBALL_KEY = '15a5eabb2d17b76fb922cd808a574779';
 
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function switchTab(tab) {
+      const tabPronos = document.getElementById('tab-pronos');
+      const tabInfos = document.getElementById('tab-infos');
+      const tabResultats = document.getElementById('tab-resultats');
+      
+      const btnPronos = document.getElementById('btn-tab-pronos');
+      const btnInfos = document.getElementById('btn-tab-infos');
+      const btnResultats = document.getElementById('btn-tab-resultats');
+
+      if (!tabPronos || !tabInfos || !tabResultats) return;
+
+      tabPronos.classList.add('hidden');
+      tabInfos.classList.add('hidden');
+      tabResultats.classList.add('hidden');
+
+      btnPronos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnInfos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnResultats.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+
+      if (tab === 'pronos') {
+        tabPronos.classList.remove('hidden');
+        btnPronos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+      } else if (tab === 'infos') {
+        tabInfos.classList.remove('hidden');
+        btnInfos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+      } else if (tab === 'resultats') {
+        tabResultats.classList.remove('hidden');
+        btnResultats.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        initMatchdaysNav();
+      }
+    }
+
+    // Récupération du prochain match du PSG via l'API-Football et lancement du décompte
     async function fetchNextPSGMatch() {
       try {
-        const res = await fetch('/api/match');
-        const data = await res.json();
-
-        if (data.contenuApi && data.contenuApi.response && data.contenuApi.response.length > 0) {
-          const match = data.contenuApi.response[0];
-          currentFixtureId = match.fixture.id;
+        const response = await fetch(`https://v3.football.api-sports.io/fixtures?team=85&next=1`, {
+          headers: { "x-apisports-key": API_FOOTBALL_KEY }
+        });
+        const data = await response.json();
+        
+        if (data.response && data.response.length > 0) {
+          const match = data.response[0];
           const matchDate = new Date(match.fixture.date);
-
-          document.getElementById('team-home-name').innerText = match.teams.home.name;
-          document.getElementById('team-home-logo').src = match.teams.home.logo;
-          document.getElementById('team-away-name').innerText = match.teams.away.name;
-          document.getElementById('team-away-logo').src = match.teams.away.logo;
-
+          
+          document.getElementById('team-away-name').innerText = match.teams.home.id === 85 ? match.teams.away.name : match.teams.home.name;
+          document.getElementById('team-away-logo').src = match.teams.home.id === 85 ? match.teams.away.logo : match.teams.home.logo;
+          document.getElementById('team-away-logo').className = "w-10 h-10 object-contain drop-shadow-lg";
           document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
-          document.getElementById('info-round').innerText = `${match.league.name} - ${match.league.round || ''}`;
-          document.getElementById('info-stadium').innerText = `${match.fixture.venue?.name || 'Stade'} (${match.fixture.venue?.city || ''})`;
-          document.getElementById('info-referee').innerText = match.fixture.referee || 'Non désigné';
+          document.getElementById('info-round').innerText = match.league.round || 'Phase de ligue';
 
           startCountdown(matchDate);
-        } else {
-          document.getElementById('countdown').innerText = "Aucun match disponible sur le plan gratuit";
         }
-      } catch (e) {
-        document.getElementById('countdown').innerText = "Erreur de chargement";
+      } catch (err) {
+        document.getElementById('countdown').innerText = "Calendrier en attente de l'UEFA";
       }
-      loadParieurs();
     }
 
     function startCountdown(targetDate) {
-      function updateTimer() {
-        const diff = targetDate.getTime() - new Date().getTime();
+      setInterval(() => {
+        const now = new Date();
+        const diff = targetDate - now;
+        const el = document.getElementById('countdown');
+        if (!el) return;
+
         if (diff <= 0) {
-          document.getElementById('countdown').innerText = "Match en cours !";
+          el.innerText = "Match en cours ou terminé !";
           return;
         }
+
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        document.getElementById('countdown').innerText = `${days}j ${hours}h ${minutes}m ${seconds}s`;
-      }
-      updateTimer();
-      setInterval(updateTimer, 1000);
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+
+        el.innerText = `${days}j ${hours}h ${mins}m ${secs}s`;
+      }, 1000);
     }
 
-    async function submitPronostic(e) {
-      e.preventDefault();
-      if (!currentFixtureId) return alert("Match non chargé.");
-      const { error } = await supabaseClient.from('pronostics').insert([{
-        nom_ami: document.getElementById('nom-ami').value.trim(),
-        score_parier: `${document.getElementById('score-home').value}-${document.getElementById('score-away').value}`,
-        minute_1er_but: parseInt(document.getElementById('minute-1er-but').value),
-        fixture_id: currentFixtureId
-      }]);
-      if (error) alert("Erreur : " + error.message);
-      else { alert("Prono enregistré ! 🎉"); document.getElementById('form-prono').reset(); loadParieurs(); }
+    // Gestion des 8 journées dans l'onglet Résultats
+    function initMatchdaysNav() {
+      const nav = document.getElementById('matchdays-nav');
+      if (!nav || nav.children.length > 0) return;
+      nav.innerHTML = '';
+
+      for (let i = 1; i <= 8; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-slate-800 text-slate-300 border border-slate-700 shrink-0 cursor-pointer`;
+        btn.innerText = `J${i}`;
+        btn.onclick = () => fetchMatchday(i);
+        nav.appendChild(btn);
+      }
+      fetchMatchday(1);
+    }
+
+    async function fetchMatchday(dayNum) {
+      const container = document.getElementById('ai-resultats-container');
+      container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Chargement Journée ${dayNum}...</span>`;
+
+      try {
+        const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=2&season=2026&round=League Stage - ${dayNum}`, {
+          headers: { "x-apisports-key": API_FOOTBALL_KEY }
+        });
+        const data = await response.json();
+
+        if (data.response && data.response.length > 0) {
+          container.innerHTML = data.response.map(m => `
+            <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex justify-between items-center text-xs">
+              <span class="w-1/3 truncate font-semibold">${m.teams.home.name}</span>
+              <span class="text-amber-400 font-black">${m.goals.home ?? '-'} : ${m.goals.away ?? '-'}</span>
+              <span class="w-1/3 text-right truncate font-semibold">${m.teams.away.name}</span>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = `<div class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 text-center text-[11px] text-slate-400">Calendrier officiel de la Journée ${dayNum} en attente de l'UEFA.</div>`;
+        }
+      } catch (err) {
+        container.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center">Erreur de chargement API.</span>`;
+      }
     }
 
     async function loadParieurs() {
-      if (!currentFixtureId) return;
-      const { data } = await supabaseClient.from('pronostics').select('*').eq('fixture_id', currentFixtureId);
-      document.getElementById('cagnotte-amount').innerText = `${(data ? data.length : 0) * 5} €`;
-      const listEl = document.getElementById('list-parieurs');
-      if (!data || data.length === 0) {
-        listEl.innerHTML = `<li class="text-slate-500 italic text-xs">Aucun pronostic pour le moment.</li>`;
-        return;
-      }
-      listEl.innerHTML = data.map(p => `
-        <li class="flex justify-between items-center bg-[#0b132b] p-2.5 rounded border border-slate-800">
-          <span class="font-bold text-slate-200">${p.nom_ami}</span>
-          <span class="text-amber-400 font-mono font-bold">${p.score_parier} <span class="text-slate-500 text-xs">(${p.minute_1er_but}')</span></span>
-        </li>
-      `).join('');
+      try {
+        const { data, error } = await supabaseClient.from('pronostics').select('*');
+        const parieursList = document.getElementById('parieurs-list');
+        const cagnotteEl = document.getElementById('cagnotte');
+
+        if (error || !data) {
+          if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px]">Aucun pari pour le moment</span>`;
+          if (cagnotteEl) cagnotteEl.innerText = `0 €`;
+          return;
+        }
+
+        const count = data.length;
+        if (cagnotteEl) cagnotteEl.innerText = `${count * MISE_PAR_PERSONNE} €`;
+
+        if (count === 0) {
+          if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px]">Aucun pari pour le moment</span>`;
+          return;
+        }
+
+        if (parieursList) {
+          parieursList.innerHTML = data.map(p => 
+            `<span class="bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 shadow">${p.nom_ami || 'Parieur'}</span>`
+          ).join('');
+        }
+      } catch (err) {}
     }
 
-    function switchTab(tab) {
-      ['prono', 'infos', 'resultats'].forEach(t => {
-        document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
-        document.getElementById(`tab-${t}`).className = `flex-1 py-3 text-sm font-bold text-center border-b-2 ${t === tab ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400'}`;
+    const pronoForm = document.getElementById('prono-form');
+    if (pronoForm) {
+      pronoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const status = document.getElementById('status');
+        if (status) {
+          status.innerText = "Validation...";
+          status.className = "text-center text-[11px] font-semibold text-blue-400";
+        }
+
+        const nom = document.getElementById('nom').value.trim();
+        const score1 = document.getElementById('score1').value;
+        const score2 = document.getElementById('score2').value;
+        const minute = parseInt(document.getElementById('minute').value);
+        const scoreParier = `${score1}-${score2}`;
+
+        try {
+          const { error } = await supabaseClient.from('pronostics').insert([
+            { 
+              nom_ami: nom, 
+              score_parier: scoreParier, 
+              minute_1er_but: minute 
+            }
+          ]);
+
+          if (error) {
+            if (status) {
+              status.innerText = "Erreur : " + error.message;
+              status.className = "text-center text-[11px] font-semibold text-red-400";
+            }
+          } else {
+            if (status) {
+              status.innerText = "Prono enregistré avec succès ! 🎉";
+              status.className = "text-center text-[11px] font-semibold text-green-400";
+            }
+            pronoForm.reset();
+            loadParieurs();
+          }
+        } catch (err) {
+          if (status) {
+            status.innerText = "Erreur de connexion.";
+            status.className = "text-center text-[11px] font-semibold text-red-400";
+          }
+        }
       });
     }
 
-    window.addEventListener('DOMContentLoaded', fetchNextPSGMatch);
+    loadParieurs();
+    fetchNextPSGMatch();
   </script>
 </body>
 </html>
