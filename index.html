@@ -302,7 +302,7 @@
       }, 1000);
     }
 
-    // Gestion des 8 journées de la Phase de Ligue (exclusion souple des barrages et tours de qualification)
+    // Gestion des 8 journées de la Phase de Ligue (Élimination stricte et définitive de tous les barrages et qualifications)
     function initMatchdaysNav() {
       const nav = document.getElementById('matchdays-nav');
       if (!nav || nav.children.length > 0) return;
@@ -330,27 +330,42 @@
           });
           const data = await response.json();
           if (data.response) {
-            // Exclusion stricte des qualifications et des barrages/playoffs d'après-saison
+            // Filtrage strict : bannir absolument tout ce qui touche aux barrages, qualifications ou tours préliminaires
             allClFixtures = data.response.filter(m => {
               const r = (m.league.round || '').toLowerCase();
-              const isPlayoffOrQualif = r.includes('qualifying') || r.includes('preliminary') || r.includes('knockout round play-offs') || r.includes('barrage');
-              return !isPlayoffOrQualif;
+              const isExcluded = r.includes('qualifying') || 
+                                 r.includes('preliminary') || 
+                                 r.includes('play-off') || 
+                                 r.includes('playoffs') || 
+                                 r.includes('barrage') || 
+                                 r.includes('knockout');
+              return !isExcluded;
             });
           }
         }
 
-        // Recherche des matchs correspondants à la journée
-        let matchesToShow = allClFixtures.filter(m => {
-          const r = (m.league.round || '').toLowerCase();
-          return r.includes(dayNum.toString()) || r.includes(`matchday ${dayNum}`) || r.includes(`journée ${dayNum}`);
+        // Regroupement par nom de tour/journée
+        const roundsMap = {};
+        allClFixtures.forEach(m => {
+          const r = m.league.round || 'Autre';
+          if (!roundsMap[r]) roundsMap[r] = [];
+          roundsMap[r].push(m);
         });
 
-        // Fallback par position si les libellés de l'API sont différents
-        if (matchesToShow.length === 0 && allClFixtures.length > 0) {
-          const uniqueRounds = [...new Set(allClFixtures.map(m => m.league.round))];
-          if (uniqueRounds[dayNum - 1]) {
-            matchesToShow = allClFixtures.filter(m => m.league.round === uniqueRounds[dayNum - 1]);
-          }
+        const roundKeys = Object.keys(roundsMap);
+
+        // Recherche intelligente du tour correspondant précisément à la journée (ex: "1" pour J1, "2" pour J2, etc.)
+        let targetRound = roundKeys.find(r => {
+          const lower = r.toLowerCase();
+          const regex = new RegExp(`(^|\\D)${dayNum}(\\D|$)`);
+          return regex.test(lower);
+        });
+
+        let matchesToShow = [];
+        if (targetRound) {
+          matchesToShow = roundsMap[targetRound];
+        } else if (roundKeys[dayNum - 1]) {
+          matchesToShow = roundsMap[roundKeys[dayNum - 1]];
         }
 
         if (matchesToShow && matchesToShow.length > 0) {
