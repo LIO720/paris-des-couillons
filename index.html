@@ -126,7 +126,7 @@
           <span class="font-semibold text-white" id="info-competition">UEFA Champions League</span>
         </div>
         <div class="flex justify-between border-b border-slate-800 pb-2">
-          <span class="text-slate-400">Tour / Journée</span>
+          <span class="text-slate-400">Phase de qualification</span>
           <span class="font-semibold text-white" id="info-round">Phase de ligue</span>
         </div>
         <div class="flex justify-between border-b border-slate-800 pb-2">
@@ -252,6 +252,17 @@
       }
     }
 
+    function formatRound(roundString) {
+      if (!roundString) return "Phase de ligue";
+      const matchNum = roundString.match(/\d+/);
+      if (matchNum) {
+        return `Journée ${matchNum[0]}`;
+      }
+      return roundString
+        .replace("Group Stage", "Phase de groupes")
+        .replace("League Stage", "Phase de ligue");
+    }
+
     function generateAutomaticMatchComment(opponentName, isHome, roundName) {
       const lieu = isHome ? "au Parc des Princes" : "à l'extérieur";
       const analyses = [
@@ -296,7 +307,7 @@
             document.getElementById('team-away-logo').className = "w-10 h-10 object-contain drop-shadow-lg";
 
             document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
-            document.getElementById('info-round').innerText = roundName;
+            document.getElementById('info-round').innerText = formatRound(roundName);
             document.getElementById('info-referee').innerText = match.fixture.referee || 'Non désigné';
             document.getElementById('info-ai-comment').innerText = generateAutomaticMatchComment(awayTeamName, isHome, roundName);
 
