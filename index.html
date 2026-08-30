@@ -671,7 +671,14 @@
 
     async function loadParieurs() {
       try {
-        const { data, error } = await supabaseClient.from('pronostics').select('*');
+        if (!currentFixtureId) return;
+
+        // On filtre strictement les pronos du match en cours grâce au fixture_id
+        const { data, error } = await supabaseClient
+          .from('pronostics')
+          .select('*')
+          .eq('fixture_id', currentFixtureId);
+
         const parieursList = document.getElementById('parieurs-list');
         const cagnotteEl = document.getElementById('cagnotte');
         const winnerCommentBlock = document.getElementById('winner-ai-comment-container');
@@ -686,7 +693,6 @@
 
         const count = data.length;
 
-        // Récupération de la cagnotte précédente (reportée) + les 5€ par parieur du match actuel
         let cagnottePrecedente = parseInt(localStorage.getItem('cagnotte_precedente') || '0');
         let montantTotalJeu = cagnottePrecedente + (count * 5);
 
@@ -697,19 +703,16 @@
           return { ...p, isExactScore, minuteDiff };
         });
 
-        // Tri : D'abord ceux qui ont le score exact, puis par proximité de la minute
         processedData.sort((a, b) => {
           if (a.isExactScore && !b.isExactScore) return -1;
           if (!a.isExactScore && b.isExactScore) return 1;
           return a.minuteDiff - b.minuteDiff;
         });
 
-        // IL Y A UN VRAI GAGNANT SEULEMENT SI QUELQU'UN A TROUVÉ LE SCORE EXACT
         const aUnVraiGagnant = currentMatchFinished && count > 0 && processedData[0].isExactScore;
 
         if (currentMatchFinished) {
           if (count === 0 || !aUnVraiGagnant) {
-            // === PAS DE GAGNANT : LA CAGNOTTE RESTE IDENTIQUE POUR LE PROCHAIN MATCH ===
             localStorage.setItem('cagnotte_precedente', montantTotalJeu);
             if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} € (Reporté)`;
             
@@ -718,7 +721,6 @@
               winnerCommentBlock.classList.remove('hidden');
             }
           } else {
-            // === IL Y A UN GAGNANT : LA CAGNOTTE EST REMPORTÉE ET REPASSE À 0 ===
             localStorage.setItem('cagnotte_precedente', 0);
             if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} € (Remporté)`;
 
@@ -728,7 +730,6 @@
             }
           }
         } else {
-          // Match en cours / à venir
           if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} €`;
           if (winnerCommentBlock) winnerCommentBlock.classList.add('hidden');
         }
@@ -767,6 +768,14 @@
       pronoForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const status = document.getElementById('status');
+        if (!currentFixtureId) {
+          if (status) {
+            status.innerText = "Erreur : Match non chargé.";
+            status.className = "text-center text-[11px] font-semibold text-red-400";
+          }
+          return;
+        }
+
         if (status) {
           status.innerText = "Validation...";
           status.className = "text-center text-[11px] font-semibold text-blue-400";
@@ -779,11 +788,13 @@
         const scoreParier = `${score1}-${score2}`;
 
         try {
+          // On insère le pari avec le fixture_id associé au match actif
           const { error } = await supabaseClient.from('pronostics').insert([
             { 
               nom_ami: nom, 
               score_parier: scoreParier, 
-              minute_1er_but: minute 
+              minute_1er_but: minute,
+              fixture_id: currentFixtureId 
             }
           ]);
 
@@ -809,7 +820,6 @@
       });
     }
 
-    loadParieurs();
     fetchNextPSGMatch();
   </script>
 </body>
