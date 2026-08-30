@@ -155,7 +155,7 @@
     <main id="tab-resultats" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
       <div class="text-center space-y-2">
         <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Calendrier des 8 Journées</h2>
-        <p class="text-[11px] text-slate-300">Navigation de la Journée 1 à 8 (Champions League)</p>
+        <p class="text-[11px] text-slate-300">Navigation de la Journée 1 à 8 (Phase de Ligue)</p>
       </div>
 
       <!-- Boutons des 8 Journées -->
@@ -302,7 +302,7 @@
       }, 1000);
     }
 
-    // Gestion des 8 journées dans l'onglet Matchs
+    // Gestion des 8 journées de la Phase de Ligue uniquement (exclusions des barrages/qualifications)
     function initMatchdaysNav() {
       const nav = document.getElementById('matchdays-nav');
       if (!nav || nav.children.length > 0) return;
@@ -330,7 +330,11 @@
           });
           const data = await response.json();
           if (data.response) {
-            allClFixtures = data.response;
+            // Filtrage strict pour ne garder que la Phase de Ligue (exclut les barrages / qualifications)
+            allClFixtures = data.response.filter(m => {
+              const r = (m.league.round || '').toLowerCase();
+              return r.includes('league stage') || r.includes('regular season');
+            });
           }
         }
 
