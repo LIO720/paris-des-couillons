@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prono Champions League - Espace Amis</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase JS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 font-sans antialiased">
@@ -32,7 +30,6 @@
         <span id="countdown" class="text-[11px] font-mono text-slate-400">Chargement...</span>
       </div>
 
-      <!-- Affichage des équipes -->
       <div id="match-card" class="flex items-center justify-between py-2">
         <div class="flex flex-col items-center space-y-2 w-5/12 text-center cursor-pointer group" onclick="openClubModal('home')">
           <div id="home-logo-container" class="w-14 h-14 flex items-center justify-center bg-slate-950/50 rounded-2xl border border-slate-800 group-hover:border-blue-500 transition">
@@ -72,7 +69,7 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-[10px] font-semibold text-slate-400 mb-1">Minute 1er but</label>
+            <label class="block text-[10px] font-semibold text-slate-400 mb-1">Minute 1er but (Départage)</label>
             <input type="number" id="minute" min="1" max="120" required class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-center text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition" placeholder="ex: 24">
           </div>
           <div>
@@ -89,9 +86,9 @@
       <div id="status" class="text-center text-xs"></div>
     </section>
 
-    <!-- Commentaire / Résultat Match -->
+    <!-- Commentaire / Arbitre IA -->
     <div id="winner-ai-comment-container" class="hidden bg-gradient-to-r from-blue-950/60 to-purple-950/60 border border-blue-800/60 rounded-3xl p-4 shadow-xl text-xs space-y-2">
-      <h4 class="font-bold text-amber-400 uppercase tracking-wider text-[10px]">Analyse du match & Résultat</h4>
+      <h4 class="font-bold text-amber-400 uppercase tracking-wider text-[10px]">🎙️ Analyse & Verdict de l'Arbitre IA</h4>
       <p id="winner-ai-comment-text" class="text-slate-300 leading-relaxed"></p>
     </div>
 
@@ -109,15 +106,11 @@
   <div id="club-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 space-y-5 shadow-2xl relative">
       <button onclick="closeClubModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-sm bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
-      <div id="club-modal-content" class="space-y-4">
-        <!-- Contenu injecté dynamiquement -->
-      </div>
+      <div id="club-modal-content" class="space-y-4"></div>
     </div>
   </div>
 
-  <!-- Script JavaScript -->
   <script>
-    // --- CONFIGURATION ---
     const API_FOOTBALL_KEY = '15a5eabb2d17b76fb922cd808a574779';
     const SUPABASE_URL = 'https://bgcuxroguucumbveptvb.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_MuYlr1whhZ7eFS1D8LoP7Q_0NV70N1X';
@@ -128,10 +121,10 @@
     let currentMatchFinished = false;
     let realHomeGoals = 0;
     let realAwayGoals = 0;
+    let realFirstGoalMinute = 25; // Valeur par défaut
     let homeTeamData = null;
     let awayTeamData = null;
 
-    // Charger le prochain match de C1
     async function fetchNextPSGMatch() {
       try {
         const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=2&season=2026&next=1`, {
@@ -147,14 +140,12 @@
           homeTeamData = match.teams.home;
           awayTeamData = match.teams.away;
 
-          // Remplissage UI
           document.getElementById('home-logo-container').innerHTML = `<img src="${homeTeamData.logo}" alt="${homeTeamData.name}" class="w-10 h-10 object-contain">`;
           document.getElementById('home-name').innerText = homeTeamData.name;
 
           document.getElementById('away-logo-container').innerHTML = `<img src="${awayTeamData.logo}" alt="${awayTeamData.name}" class="w-10 h-10 object-contain">`;
           document.getElementById('away-name').innerText = awayTeamData.name;
 
-          // Statut du match
           currentMatchFinished = (match.fixture.status.short === 'FT');
           if (currentMatchFinished) {
             realHomeGoals = match.goals.home;
@@ -263,12 +254,18 @@
           return;
         }
 
-        listDiv.innerHTML = pronos.map(p => {
-          let isExact = false;
-          if (currentMatchFinished) {
+        // Logique de désignation du vainqueur (bon score ou départage par minute la plus proche)
+        let exactWinners = [];
+        if (currentMatchFinished) {
+          exactWinners = pronos.filter(p => {
             const [ph, pa] = p.score_parier.split('-').map(Number);
-            isExact = (ph === realHomeGoals && pa === realAwayGoals);
-          }
+            return ph === realHomeGoals && pa === realAwayGoals;
+          });
+        }
+
+        listDiv.innerHTML = pronos.map(p => {
+          let [ph, pa] = p.score_parier.split('-').map(Number);
+          let isExact = currentMatchFinished && (ph === realHomeGoals && pa === realAwayGoals);
 
           const displayScore = currentMatchFinished ? p.score_parier : '🔒 masqué';
           const displayMin = currentMatchFinished ? p.minute_1er_but + "'" : '🔒';
@@ -277,7 +274,7 @@
             <div class="bg-slate-950/70 border ${isExact ? 'border-amber-500 bg-amber-500/15' : 'border-slate-800'} rounded-xl p-2.5 flex items-center justify-between text-xs">
               <div class="flex items-center space-x-2">
                 <span class="font-bold text-white">${p.nom_ami}</span>
-                ${isExact ? '<span class="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black text-[9px] uppercase">Exact 🏆</span>' : ''}
+                ${isExact ? '<span class="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black text-[9px] uppercase">Vainqueur 🏆</span>' : ''}
               </div>
               <div class="flex items-center space-x-3">
                 <span class="bg-blue-950/80 text-blue-300 px-2 py-0.5 rounded font-mono font-bold">${displayScore}</span>
@@ -291,15 +288,13 @@
           const commentContainer = document.getElementById('winner-ai-comment-container');
           const commentText = document.getElementById('winner-ai-comment-text');
           if (commentContainer && commentText) {
-            const winners = pronos.filter(p => {
-              const [ph, pa] = p.score_parier.split('-').map(Number);
-              return ph === realHomeGoals && pa === realAwayGoals;
-            });
-
-            if (winners.length > 0) {
-              commentText.innerText = `Score final : ${realHomeGoals}-${realAwayGoals}. Bravo à ${winners.map(w => w.nom_ami).join(', ')} qui remporte la cagnotte !`;
+            if (exactWinners.length > 0) {
+              // S'il y a plusieurs gagnants du bon score, on départage avec la minute la plus proche
+              exactWinners.sort((a, b) => Math.abs(a.minute_1er_but - realFirstGoalMinute) - Math.abs(b.minute_1er_but - realFirstGoalMinute));
+              const ultimateWinner = exactWinners[0];
+              commentText.innerText = `Coup de sifflet final ! Score officiel : ${realHomeGoals}-${realAwayGoals}. Premier but à la ${realFirstGoalMinute}' minute. Victoire finale de ${ultimateWinner.nom_ami} grâce au départage sur la minute ! La cagnotte est remportée !`;
             } else {
-              commentText.innerText = `Score final : ${realHomeGoals}-${realAwayGoals}. Aucun pronostic exact, la cagnotte est reportée au prochain match !`;
+              commentText.innerText = `Coup de sifflet final ! Score officiel : ${realHomeGoals}-${realAwayGoals}. Aucun pronostic exact trouvé, la cagnotte est reconduite et cumulée pour le prochain match !`;
             }
             commentContainer.classList.remove('hidden');
           }
@@ -370,7 +365,6 @@
       setInterval(updateTimer, 1000);
     }
 
-    // Lancement de l'application au chargement
     fetchNextPSGMatch();
   </script>
 </body>
