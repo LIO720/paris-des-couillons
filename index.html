@@ -1,460 +1,279 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Le Paris des Couillons</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase JS Client CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background-color: #0b132b; color: #ffffff; }
+  </style>
 </head>
-<body class="bg-[#090D16] text-slate-100 min-h-screen py-8 px-4 font-sans">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-  <div class="max-w-md mx-auto space-y-4">
+  <div class="w-full max-w-md bg-[#1c2541] rounded-2xl shadow-2xl overflow-hidden border border-slate-700">
     
-    <!-- TITRE PRINCIPAL -->
-    <h1 class="text-center font-extrabold text-2xl tracking-wider text-amber-400 uppercase">
-      LE PARIS DES COUILLONS
-    </h1>
-
-    <!-- BLOC CAGNOTTE ACTUELLE -->
-    <div class="bg-[#101726] border border-slate-800/80 rounded-2xl p-4 text-center shadow-lg">
-      <div class="text-slate-400 text-[11px] font-bold tracking-widest uppercase mb-1">
-        CAGNOTTE ACTUELLE
-      </div>
-      <div id="cagnotte" class="text-emerald-400 font-black text-3xl">
-        0 €
+    <div class="p-6 text-center border-b border-slate-700">
+      <h1 class="text-2xl font-extrabold tracking-wider text-amber-400 uppercase">Le Paris des Couillons</h1>
+      <div class="mt-4 bg-[#0b132b] p-4 rounded-xl border border-slate-800">
+        <span class="text-xs uppercase tracking-widest text-slate-400 block mb-1">Cagnotte Actuelle</span>
+        <span id="cagnotte-amount" class="text-3xl font-black text-emerald-400">0 €</span>
       </div>
     </div>
 
-    <!-- BOUTONS D'ONGLETS -->
-    <div class="flex justify-center gap-2">
-      <button id="btn-tab-pronos" onclick="switchTab('pronos')" class="px-4 py-2 rounded-xl text-xs font-bold uppercase transition bg-blue-600 text-white border border-blue-500 cursor-pointer">
-        PRONOS
-      </button>
-      <button id="btn-tab-infos" onclick="switchTab('infos')" class="px-4 py-2 rounded-xl text-xs font-bold uppercase transition bg-[#101726] text-slate-300 border border-slate-800 hover:bg-slate-800 cursor-pointer">
-        INFOS MATCH
-      </button>
-      <button id="btn-tab-resultats" onclick="switchTab('resultats')" class="px-4 py-2 rounded-xl text-xs font-bold uppercase transition bg-[#101726] text-slate-300 border border-slate-800 hover:bg-slate-800 cursor-pointer">
-        RÉSULTATS J
-      </button>
+    <div class="flex border-b border-slate-700 bg-[#0b132b]/50">
+      <button id="tab-prono" onclick="switchTab('prono')" class="flex-1 py-3 text-sm font-bold text-center border-b-2 border-blue-500 text-blue-400">PRONOS</button>
+      <button id="tab-infos" onclick="switchTab('infos')" class="flex-1 py-3 text-sm font-bold text-center border-b-2 border-transparent text-slate-400 hover:text-white">INFOS MATCH</button>
+      <button id="tab-resultats" onclick="switchTab('resultats')" class="flex-1 py-3 text-sm font-bold text-center border-b-2 border-transparent text-slate-400 hover:text-white">RÉSULTATS J</button>
     </div>
 
-    <!-- CARTE PRINCIPALE -->
-    <div class="bg-[#101726] border border-slate-800/80 rounded-3xl p-6 shadow-2xl">
+    <div id="view-prono" class="p-6 space-y-6">
       
-      <!-- TAB 1 : PRONOS -->
-      <div id="tab-pronos" class="space-y-6">
-        
-        <!-- EN-TÊTE DU MATCH -->
-        <div class="flex items-center justify-between px-2">
-          <!-- ÉQUIPE DOMICILE -->
-          <div class="flex flex-col items-center w-1/3 text-center">
-            <img id="team-home-logo" src="https://media.api-sports.io/football/teams/85.png" alt="PSG" class="w-12 h-12 object-contain mb-1">
-            <span id="team-home-name" class="font-bold text-xs">PSG</span>
-          </div>
+      <div class="flex items-center justify-around bg-[#0b132b] p-4 rounded-xl border border-slate-800">
+        <div class="text-center w-1/3">
+          <img id="team-home-logo" src="https://media.api-sports.io/football/teams/85.png" alt="PSG" class="w-12 h-12 mx-auto object-contain mb-1">
+          <span id="team-home-name" class="text-xs font-bold block truncate">PSG</span>
+        </div>
+        <div class="text-center w-1/3">
+          <span class="text-amber-400 font-black text-lg">VS</span>
+        </div>
+        <div class="text-center w-1/3">
+          <img id="team-away-logo" src="https://media.api-sports.io/football/teams/0.png" alt="Adversaire" class="w-12 h-12 mx-auto object-contain mb-1">
+          <span id="team-away-name" class="text-xs font-bold block truncate">Chargement...</span>
+        </div>
+      </div>
 
-          <!-- VS -->
-          <div class="text-amber-400 font-black text-sm">VS</div>
+      <div class="bg-[#0b132b] p-3 rounded-lg text-center border border-slate-800">
+        <span class="text-[10px] uppercase text-slate-400 block tracking-wider">Coup d'envoi dans</span>
+        <span id="countdown" class="text-sm font-bold text-blue-400">Recherche du match...</span>
+      </div>
 
-          <!-- ÉQUIPE EXTÉRIEUR -->
-          <div class="flex flex-col items-center w-1/3 text-center">
-            <img id="team-away-logo" src="https://media.api-sports.io/football/teams/85.png" alt="Away" class="w-12 h-12 object-contain mb-1">
-            <span id="team-away-name" class="font-bold text-xs text-slate-200">Prochain adversaire</span>
-          </div>
+      <form id="form-prono" onsubmit="submitPronostic(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold mb-1 text-slate-300">Ton Nom / Pseudo</label>
+          <input type="text" id="nom-ami" required class="w-full bg-[#0b132b] border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
         </div>
 
-        <!-- DECOMPTE / COUP D'ENVOI -->
-        <div class="bg-[#090D16] border border-slate-800 rounded-2xl p-3 text-center">
-          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">COUP D'ENVOI DANS</div>
-          <div id="countdown" class="text-blue-400 font-bold text-xs">Chargement du match...</div>
-        </div>
-
-        <!-- FORMULAIRE DE PRONOSTIC -->
-        <form id="prono-form" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-slate-300 text-xs font-bold mb-1.5">Ton Nom / Pseudo</label>
-            <input type="text" id="nom" required class="w-full bg-[#090D16] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-blue-500 transition">
+            <label class="block text-xs font-semibold mb-1 text-slate-300">Buts Domicile</label>
+            <input type="number" id="score-home" min="0" required class="w-full bg-[#0b132b] border border-slate-700 rounded-lg p-2.5 text-sm text-center text-white focus:outline-none focus:border-blue-500">
           </div>
-
-          <!-- SCORES DU MATCH -->
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-slate-300 text-xs font-bold mb-1.5">Buts Domicile</label>
-              <input type="number" id="score1" min="0" max="15" required class="w-full bg-[#090D16] border border-slate-800 rounded-xl px-3 py-2.5 text-white text-xs text-center focus:outline-none focus:border-blue-500 transition">
-            </div>
-            <div>
-              <label class="block text-slate-300 text-xs font-bold mb-1.5">Buts Extérieur</label>
-              <input type="number" id="score2" min="0" max="15" required class="w-full bg-[#090D16] border border-slate-800 rounded-xl px-3 py-2.5 text-white text-xs text-center focus:outline-none focus:border-blue-500 transition">
-            </div>
-          </div>
-
           <div>
-            <label class="block text-slate-300 text-xs font-bold mb-1.5">Minute 1er But (départage)</label>
-            <input type="number" id="minute" min="1" max="120" required class="w-full bg-[#090D16] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-blue-500 transition">
-          </div>
-
-          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition cursor-pointer shadow-lg mt-2">
-            Valider mon pronostic
-          </button>
-
-          <div id="status" class="text-center text-xs font-medium"></div>
-        </form>
-
-        <!-- PRONOSTIQUEURS INSCRITS -->
-        <div class="border-t border-slate-800 pt-4">
-          <div class="text-slate-400 text-[11px] font-bold uppercase tracking-wider mb-2">PRONOSTIQUEURS INSCRITS :</div>
-          <div id="parieurs-list" class="flex flex-wrap gap-2 text-xs">
-            <span class="text-slate-500 italic text-[11px]">Chargement...</span>
+            <label class="block text-xs font-semibold mb-1 text-slate-300">Buts Extérieur</label>
+            <input type="number" id="score-away" min="0" required class="w-full bg-[#0b132b] border border-slate-700 rounded-lg p-2.5 text-sm text-center text-white focus:outline-none focus:border-blue-500">
           </div>
         </div>
 
+        <div>
+          <label class="block text-xs font-semibold mb-1 text-slate-300">Minute 1er But (départage)</label>
+          <input type="number" id="minute-1er-but" min="1" max="120" required class="w-full bg-[#0b132b] border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+        </div>
+
+        <button type="submit" id="btn-submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-colors">
+          Valider mon pronostic
+        </button>
+      </form>
+
+      <div class="pt-4 border-t border-slate-700">
+        <h3 class="text-xs font-bold uppercase text-slate-400 mb-3 tracking-wider">Pronostiqueurs inscrits :</h3>
+        <ul id="list-parieurs" class="space-y-2 text-sm text-slate-300">
+          <li class="text-slate-500 italic text-xs">Chargement des pronostics...</li>
+        </ul>
       </div>
-
-      <!-- TAB 2 : INFOS MATCH -->
-      <div id="tab-infos" class="space-y-4 hidden">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 border-b border-slate-800 pb-2">Détails de la rencontre</h3>
-        
-        <div class="space-y-2 text-xs">
-          <div class="flex justify-between border-b border-slate-800/50 py-1.5">
-            <span class="text-slate-400">Date & Heure :</span>
-            <span id="info-date" class="font-semibold text-slate-200">En attente</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-800/50 py-1.5">
-            <span class="text-slate-400">Compétition / Journée :</span>
-            <span id="info-round" class="font-semibold text-slate-200">En attente</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-800/50 py-1.5">
-            <span class="text-slate-400">Stade :</span>
-            <span id="info-stadium" class="font-semibold text-slate-200">Non défini</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-800/50 py-1.5">
-            <span class="text-slate-400">Arbitre :</span>
-            <span id="info-referee" class="font-semibold text-slate-200">Non désigné</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-800/50 py-1.5">
-            <span class="text-slate-400">Nationalité Arbitre :</span>
-            <span id="info-referee-country" class="font-semibold text-slate-200">-</span>
-          </div>
-        </div>
-
-        <div class="bg-[#090D16] border border-slate-800 rounded-xl p-3 mt-4">
-          <div class="text-[10px] text-amber-400 font-bold uppercase mb-1">Analyse Arbitrage (IA)</div>
-          <p id="info-referee-comment" class="text-[11px] text-slate-300 leading-relaxed italic">
-            Les informations sur le corps arbitral apparaîtront dès leur officialisation.
-          </p>
-        </div>
-      </div>
-
-      <!-- TAB 3 : RÉSULTATS J -->
-      <div id="tab-resultats" class="space-y-4 hidden">
-        <div class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">Résultats Journées</div>
-        <div id="matchdays-nav" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none"></div>
-        <div id="ai-resultats-container" class="space-y-2 mt-2">
-          <span class="text-slate-500 italic text-[11px] block text-center">Sélectionnez une journée</span>
-        </div>
-      </div>
-
     </div>
+
+    <div id="view-infos" class="p-6 space-y-4 hidden">
+      <div class="bg-[#0b132b] p-4 rounded-xl border border-slate-800 space-y-3 text-sm">
+        <div><span class="text-slate-400 block text-xs">Date & Heure :</span> <strong id="info-date">-</strong></div>
+        <div><span class="text-slate-400 block text-xs">Compétition :</span> <strong id="info-round">-</strong></div>
+        <div><span class="text-slate-400 block text-xs">Stade :</span> <strong id="info-stadium">-</strong></div>
+        <div><span class="text-slate-400 block text-xs">Arbitre principal :</span> <strong id="info-referee">-</strong></div>
+      </div>
+    </div>
+
+    <div id="view-resultats" class="p-6 hidden">
+      <p class="text-center text-slate-400 text-sm italic">Les résultats seront mis à jour après la fin de la rencontre.</p>
+    </div>
+
   </div>
 
-  <!-- SCRIPT LOGIQUE JS -->
   <script>
+    // Config Supabase & API-Football
     const SUPABASE_URL = "https://bgcuxroguucumbveptvb.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_MuYlr1whhZ7eFS1D8LoP7Q_0NV70N1X";
-    const MISE_PAR_PERSONNE = 5;
-    const API_FOOTBALL_KEY = '15a5eabb2d17b76fb922cd808a574779';
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnY3V4cm9ndXVjdW1idmVwdHZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxNTMwNDMsImV4cCI6MjA1NTcyOTA0M30.4i4P8bE0gX0K2d3C1r2R4u5t6y7u8i9o0p1a2s3d4f5"; 
+    const API_FOOTBALL_KEY = "15a5eabb2d17b76fb922cd808a574779";
 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let currentFixtureId = null;
-    let countdownInterval = null;
+    let timerInterval = null;
 
-    function switchTab(tab) {
-      const tabPronos = document.getElementById('tab-pronos');
-      const tabInfos = document.getElementById('tab-infos');
-      const tabResultats = document.getElementById('tab-resultats');
-      
-      const btnPronos = document.getElementById('btn-tab-pronos');
-      const btnInfos = document.getElementById('btn-tab-infos');
-      const btnResultats = document.getElementById('btn-tab-resultats');
-
-      if (!tabPronos || !tabInfos || !tabResultats) return;
-
-      tabPronos.classList.add('hidden');
-      tabInfos.classList.add('hidden');
-      tabResultats.classList.add('hidden');
-
-      if (btnPronos) btnPronos.classList.remove('bg-blue-600', 'text-white');
-      if (btnInfos) btnInfos.classList.remove('bg-blue-600', 'text-white');
-      if (btnResultats) btnResultats.classList.remove('bg-blue-600', 'text-white');
-
-      if (tab === 'pronos') {
-        tabPronos.classList.remove('hidden');
-        if (btnPronos) btnPronos.classList.add('bg-blue-600', 'text-white');
-      } else if (tab === 'infos') {
-        tabInfos.classList.remove('hidden');
-        if (btnInfos) btnInfos.classList.add('bg-blue-600', 'text-white');
-      } else if (tab === 'resultats') {
-        tabResultats.classList.remove('hidden');
-        if (btnResultats) btnResultats.classList.add('bg-blue-600', 'text-white');
-        initMatchdaysNav();
-      }
-    }
-
+    // 1. Récupération directe du vrai prochain match PSG depuis l'API
     async function fetchNextPSGMatch() {
       try {
-        // 1. Recherche globale : Prochain match du PSG (Toutes compétitions)
-        let response = await fetch("https://v3.football.api-sports.io/fixtures?team=85&next=1", {
-          headers: { "x-apisports-key": API_FOOTBALL_KEY }
-        });
-        let data = await response.json();
+        const headers = { "x-apisports-key": API_FOOTBALL_KEY };
         
-        // 2. Si aucun match trouvé (ex: UEFA pas encore synchronisé), bascule sur Ligue 1 (league=61)
-        if (!data.response || data.response.length === 0) {
-          response = await fetch("https://v3.football.api-sports.io/fixtures?team=85&league=61&next=1", {
-            headers: { "x-apisports-key": API_FOOTBALL_KEY }
-          });
-          data = await response.json();
+        // Requête élargie sur les 5 prochains matchs pour éviter les réponses vides de next=1
+        let res = await fetch("https://v3.football.api-sports.io/fixtures?team=85&next=5", { headers });
+        let data = await res.json();
+
+        // Récupération du premier match qui n'a pas encore commencé
+        let match = null;
+        if (data.response && data.response.length > 0) {
+          match = data.response.find(m => m.fixture.status.short === "NS" || m.fixture.status.short === "TBD") || data.response[0];
         }
 
-        // Si un match est trouvé
-        if (data.response && data.response.length > 0) {
-          const match = data.response[0];
-          currentFixtureId = match.fixture.id;
-          const matchDate = new Date(match.fixture.date);
-          
-          const homeNameEl = document.getElementById('team-home-name');
-          const homeLogoEl = document.getElementById('team-home-logo');
-          const awayNameEl = document.getElementById('team-away-name');
-          const awayLogoEl = document.getElementById('team-away-logo');
-
-          if (homeNameEl) homeNameEl.innerText = match.teams.home.name;
-          if (homeLogoEl) homeLogoEl.src = match.teams.home.logo;
-          if (awayNameEl) {
-            awayNameEl.innerText = match.teams.away.name;
-            awayNameEl.classList.remove('text-slate-400');
-          }
-          if (awayLogoEl) {
-            awayLogoEl.src = match.teams.away.logo;
-            awayLogoEl.classList.remove('opacity-50');
-          }
-
-          const infoDateEl = document.getElementById('info-date');
-          const infoRoundEl = document.getElementById('info-round');
-          if (infoDateEl) infoDateEl.innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
-          if (infoRoundEl) infoRoundEl.innerText = (match.league.name || 'Compétition') + ' - ' + (match.league.round || '');
-
-          const stadiumName = match.fixture.venue?.name || 'Stade non défini';
-          const stadiumCity = match.fixture.venue?.city ? ` (${match.fixture.venue.city})` : '';
-          const infoStadiumEl = document.getElementById('info-stadium');
-          if (infoStadiumEl) infoStadiumEl.innerText = stadiumName + stadiumCity;
-
-          const infoRefEl = document.getElementById('info-referee');
-          const infoRefCountryEl = document.getElementById('info-referee-country');
-          const infoRefCommentEl = document.getElementById('info-referee-comment');
-
-          if (match.fixture.referee) {
-            const refParts = match.fixture.referee.split(',');
-            const refName = refParts[0] ? refParts[0].trim() : match.fixture.referee;
-            const refCountry = refParts[1] ? refParts[1].trim() : 'Officiel';
-
-            if (infoRefEl) infoRefEl.innerText = refName;
-            if (infoRefCountryEl) infoRefCountryEl.innerText = refCountry;
-            if (infoRefCommentEl) infoRefCommentEl.innerText = generateRefereeAIComment(refName, refCountry);
-          } else {
-            if (infoRefEl) infoRefEl.innerText = 'En attente désignation';
-            if (infoRefCountryEl) infoRefCountryEl.innerText = '-';
-            if (infoRefCommentEl) infoRefCommentEl.innerText = "L'organisation n'a pas encore désigné le corps arbitral.";
-          }
-
-          startCountdown(matchDate);
-          loadParieurs();
+        if (!match) {
+          document.getElementById('countdown').innerText = "Aucun match à venir programmé.";
           return;
         }
+
+        // Attribution de l'ID officiel du match API
+        currentFixtureId = match.fixture.id;
+        const matchDate = new Date(match.fixture.date);
+
+        // Affichage des logos et noms de clubs
+        document.getElementById('team-home-name').innerText = match.teams.home.name;
+        document.getElementById('team-home-logo').src = match.teams.home.logo;
+        document.getElementById('team-away-name').innerText = match.teams.away.name;
+        document.getElementById('team-away-logo').src = match.teams.away.logo;
+
+        // Informations détaillées
+        document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+        document.getElementById('info-round').innerText = `${match.league.name} - ${match.league.round}`;
+        document.getElementById('info-stadium').innerText = `${match.fixture.venue.name || 'Stade inconnu'} (${match.fixture.venue.city || '-'})`;
+        document.getElementById('info-referee').innerText = match.fixture.referee || 'Non désigné';
+
+        // Lancement du compte à rebours
+        startCountdown(matchDate);
+
+        // Chargement des pronostics enregistrés pour cette rencontre
+        loadParieurs();
+
       } catch (err) {
-        console.error("Erreur API Football :", err);
+        console.error("Erreur lors de la récupération de l'API Football :", err);
+        document.getElementById('countdown').innerText = "Erreur de connexion API";
       }
-
-      // ID DE SECOURS (Si aucune API ne répond ou si pas de match trouvé)
-      currentFixtureId = 850001;
-      const countdownEl = document.getElementById('countdown');
-      if (countdownEl) countdownEl.innerText = "Match prêt aux pronostics";
-      loadParieurs();
     }
 
-    function generateRefereeAIComment(name, country) {
-      const n = name.toLowerCase();
-      if (n.includes('turpin')) return "Clément Turpin est un arbitre d'expérience internationale très respecté.";
-      if (n.includes('marciniak')) return "Szymon Marciniak figure parmi l'élite mondiale avec un style très ferme.";
-      if (n.includes('taylor')) return "Anthony Taylor privilégie la continuité du jeu et laisse jouer dans les duels.";
-      if (n.includes('letexier')) return "François Letexier incarne la nouvelle génération dynamique et rigoureuse.";
-      return `${name} (${country}) est l'arbitre officiel désigné pour cette rencontre.`;
-    }
-
+    // 2. Compte à rebours du match
     function startCountdown(targetDate) {
-      if (countdownInterval) clearInterval(countdownInterval);
-
-      countdownInterval = setInterval(() => {
-        const now = new Date();
-        const diff = targetDate - now;
-        const el = document.getElementById('countdown');
-        if (!el) return;
+      if (timerInterval) clearInterval(timerInterval);
+      
+      function updateTimer() {
+        const now = new Date().getTime();
+        const diff = targetDate.getTime() - now;
 
         if (diff <= 0) {
-          el.innerText = "Match en cours ou terminé !";
-          clearInterval(countdownInterval);
+          document.getElementById('countdown').innerText = "Match en cours ou terminé !";
+          clearInterval(timerInterval);
           return;
         }
 
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const mins = Math.floor((diff / 1000 / 60) % 60);
-        const secs = Math.floor((diff / 1000) % 60);
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-        el.innerText = `${days}j ${hours}h ${mins}m ${secs}s`;
-      }, 1000);
-    }
-
-    function initMatchdaysNav() {
-      const nav = document.getElementById('matchdays-nav');
-      if (!nav || nav.children.length > 0) return;
-      nav.innerHTML = '';
-
-      for (let i = 1; i <= 8; i++) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-[#090D16] text-slate-300 border border-slate-800 shrink-0 cursor-pointer hover:bg-slate-800";
-        btn.innerText = "J" + i;
-        btn.onclick = () => fetchMatchday(i);
-        nav.appendChild(btn);
-      }
-      fetchMatchday(1);
-    }
-
-    async function fetchMatchday(dayNum) {
-      const container = document.getElementById('ai-resultats-container');
-      if (!container) return;
-      container.innerHTML = '<span class="text-slate-400 italic text-[11px] block text-center">Chargement Journée ' + dayNum + '...</span>';
-
-      try {
-        const url = 'https://v3.football.api-sports.io/fixtures?league=2&season=2026&round=League Stage - ' + dayNum;
-        const response = await fetch(url, {
-          headers: { "x-apisports-key": API_FOOTBALL_KEY }
-        });
-        const data = await response.json();
-
-        if (data.response && data.response.length > 0) {
-          container.innerHTML = data.response.map(m => {
-            const homeGoals = m.goals.home !== null ? m.goals.home : '-';
-            const awayGoals = m.goals.away !== null ? m.goals.away : '-';
-            return '<div class="bg-[#090D16] border border-slate-800 rounded-xl p-3 flex justify-between items-center text-xs">' +
-              '<span class="w-1/3 truncate font-semibold">' + m.teams.home.name + '</span>' +
-              '<span class="text-amber-400 font-black">' + homeGoals + ' : ' + awayGoals + '</span>' +
-              '<span class="w-1/3 text-right truncate font-semibold">' + m.teams.away.name + '</span>' +
-            '</div>';
-          }).join('');
-          return;
-        }
-      } catch (err) {
-        console.error("Erreur API :", err);
+        document.getElementById('countdown').innerText = `${days}j ${hours}h ${minutes}m ${seconds}s`;
       }
 
-      container.innerHTML = '<div class="bg-[#090D16] border border-slate-800 rounded-2xl p-4 text-center space-y-1">' +
-        '<div class="text-amber-400 font-bold text-xs uppercase">Journée ' + dayNum + '</div>' +
-        '<p class="text-[11px] text-slate-400">Programmations en cours de confirmation par l\'organisation.</p>' +
-      '</div>';
+      updateTimer();
+      timerInterval = setInterval(updateTimer, 1000);
     }
 
+    // 3. Soumission du pronostic dans Supabase avec le fixture_id exact
+    async function submitPronostic(e) {
+      e.preventDefault();
+
+      if (!currentFixtureId) {
+        alert("Impossible d'enregistrer le pronostic : le match n'est pas encore identifié par l'API.");
+        return;
+      }
+
+      const nom = document.getElementById('nom-ami').value.trim();
+      const scoreHome = document.getElementById('score-home').value;
+      const scoreAway = document.getElementById('score-away').value;
+      const minute1erBut = document.getElementById('minute-1er-but').value;
+
+      const { data, error } = await supabaseClient
+        .from('pronostics')
+        .insert([{
+          nom_ami: nom,
+          score_parier: `${scoreHome}-${scoreAway}`,
+          minute_1er_but: parseInt(minute1erBut),
+          fixture_id: currentFixtureId
+        }]);
+
+      if (error) {
+        console.error("Erreur Supabase :", error);
+        alert("Erreur d'enregistrement : " + error.message);
+      } else {
+        alert("Prono enregistré avec succès ! 🎉");
+        document.getElementById('form-prono').reset();
+        loadParieurs();
+      }
+    }
+
+    // 4. Chargement des parieurs et de la cagnotte depuis Supabase
     async function loadParieurs() {
       if (!currentFixtureId) return;
 
-      try {
-        const { data, error } = await supabaseClient
-          .from('pronostics')
-          .select('*')
-          .eq('fixture_id', currentFixtureId);
+      const { data, error } = await supabaseClient
+        .from('pronostics')
+        .select('*')
+        .eq('fixture_id', currentFixtureId);
 
-        const parieursList = document.getElementById('parieurs-list');
-        const cagnotteEl = document.getElementById('cagnotte');
+      if (error) {
+        console.error("Erreur lecture Supabase :", error);
+        return;
+      }
 
-        if (error || !data) {
-          if (parieursList) parieursList.innerHTML = '<span class="text-slate-500 italic text-[11px]">Aucun pari pour le moment</span>';
-          if (cagnotteEl) cagnotteEl.innerText = '0 €';
-          return;
-        }
+      const listEl = document.getElementById('list-parieurs');
+      const cagnotteEl = document.getElementById('cagnotte-amount');
 
-        const count = data.length;
-        if (cagnotteEl) cagnotteEl.innerText = (count * MISE_PAR_PERSONNE) + ' €';
+      // Calcul de la cagnotte (5 € par pronostic enregistré)
+      const count = data ? data.length : 0;
+      cagnotteEl.innerText = `${count * 5} €`;
 
-        if (count === 0) {
-          if (parieursList) parieursList.innerHTML = '<span class="text-slate-500 italic text-[11px]">Aucun pari pour le moment</span>';
-          return;
-        }
+      if (!data || data.length === 0) {
+        listEl.innerHTML = `<li class="text-slate-500 italic text-xs">Aucun pronostic pour le moment. Sois le premier !</li>`;
+        return;
+      }
 
-        if (parieursList) {
-          parieursList.innerHTML = data.map(p => 
-            '<span class="bg-[#090D16] text-slate-200 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-800 shadow-sm">' + (p.nom_ami || 'Parieur') + '</span>'
-          ).join('');
-        }
-      } catch (err) {}
+      listEl.innerHTML = data.map(p => `
+        <li class="flex justify-between items-center bg-[#0b132b] p-2.5 rounded border border-slate-800">
+          <span class="font-bold text-slate-200">${p.nom_ami}</span>
+          <span class="text-amber-400 font-mono font-bold">${p.score_parier} <span class="text-slate-500 text-xs">(${p.minute_1er_but}')</span></span>
+        </li>
+      `).join('');
     }
 
-    const pronoForm = document.getElementById('prono-form');
-    if (pronoForm) {
-      pronoForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // Gestion des onglets UI
+    function switchTab(tab) {
+      document.getElementById('view-prono').classList.add('hidden');
+      document.getElementById('view-infos').classList.add('hidden');
+      document.getElementById('view-resultats').classList.add('hidden');
 
-        if (!currentFixtureId) {
-          currentFixtureId = 850001;
-        }
+      document.getElementById('tab-prono').className = "flex-1 py-3 text-sm font-bold text-center border-b-2 border-transparent text-slate-400";
+      document.getElementById('tab-infos').className = "flex-1 py-3 text-sm font-bold text-center border-b-2 border-transparent text-slate-400";
+      document.getElementById('tab-resultats').className = "flex-1 py-3 text-sm font-bold text-center border-b-2 border-transparent text-slate-400";
 
-        const status = document.getElementById('status');
-        if (status) {
-          status.innerText = "Validation...";
-          status.className = "text-center text-[11px] font-semibold text-blue-400";
-        }
-
-        const nom = document.getElementById('nom').value.trim();
-        const score1 = document.getElementById('score1').value;
-        const score2 = document.getElementById('score2').value;
-        const minute = parseInt(document.getElementById('minute').value);
-        const scoreParier = score1 + '-' + score2;
-
-        try {
-          const { error } = await supabaseClient.from('pronostics').insert([
-            { 
-              nom_ami: nom, 
-              score_parier: scoreParier, 
-              minute_1er_but: minute,
-              fixture_id: currentFixtureId
-            }
-          ]);
-
-          if (error) {
-            if (status) {
-              status.innerText = "Erreur : " + error.message;
-              status.className = "text-center text-[11px] font-semibold text-red-400";
-            }
-          } else {
-            if (status) {
-              status.innerText = "Prono enregistré avec succès ! 🎉";
-              status.className = "text-center text-[11px] font-semibold text-green-400";
-            }
-            pronoForm.reset();
-            loadParieurs();
-          }
-        } catch (err) {
-          if (status) {
-            status.innerText = "Erreur de connexion.";
-            status.className = "text-center text-[11px] font-semibold text-red-400";
-          }
-        }
-      });
+      if (tab === 'prono') {
+        document.getElementById('view-prono').classList.remove('hidden');
+        document.getElementById('tab-prono').className = "flex-1 py-3 text-sm font-bold text-center border-b-2 border-blue-500 text-blue-400";
+      } else if (tab === 'infos') {
+        document.getElementById('view-infos').classList.remove('hidden');
+        document.getElementById('tab-infos').className = "flex-1 py-3 text-sm font-bold text-center border-b-2 border-blue-500 text-blue-400";
+      } else if (tab === 'resultats') {
+        document.getElementById('view-resultats').classList.remove('hidden');
+        document.getElementById('tab-resultats').className = "flex-1 py-3 text-sm font-bold text-center border-b-2 border-blue-500 text-blue-400";
+      }
     }
 
-    fetchNextPSGMatch();
+    // Initialisation au chargement de la page
+    window.addEventListener('DOMContentLoaded', fetchNextPSGMatch);
   </script>
 </body>
 </html>
