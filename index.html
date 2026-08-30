@@ -339,7 +339,7 @@
         const [resTeam, resStats, resSquad] = await Promise.all([
           fetch(`https://v3.football.api-sports.io/teams?id=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } }),
           fetch(`https://v3.football.api-sports.io/teams/statistics?league=2&season=2026&team=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } }),
-          fetch(`https://v3.football.api-sports.io/squads?team=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } })
+          fetch(`https://v3.football.api-sports.io/players/squads?team=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } })
         ]);
 
         const dataTeam = await resTeam.json();
@@ -398,10 +398,12 @@
               </div>
             </div>
 
+            <!-- Effectif complet (Version payante activée) -->
+            ${squadList.length > 0 ? `
             <div class="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-3">
               <h3 class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Effectif (${squadList.length} joueurs)</h3>
               <div class="max-h-56 overflow-y-auto space-y-1.5 pr-1">
-                ${squadList.length > 0 ? squadList.map(p => `
+                ${squadList.map(p => `
                   <div class="flex items-center justify-between bg-slate-900 p-2 rounded-xl border border-slate-800 text-xs">
                     <div class="flex items-center space-x-2.5">
                       <img src="${p.photo}" class="w-7 h-7 rounded-full object-cover bg-slate-800" alt="">
@@ -412,9 +414,9 @@
                     </div>
                     <span class="text-[11px] text-slate-400">${p.age ? p.age + ' ans' : ''}</span>
                   </div>
-                `).join('') : '<p class="text-xs text-slate-400 italic text-center py-2">Effectif non disponible.</p>'}
+                `).join('')}
               </div>
-            </div>
+            </div>` : ''}
           `;
         } else {
           content.innerHTML = `<p class="text-xs text-red-400 text-center py-6">Impossible de charger les données de ce club.</p>`;
