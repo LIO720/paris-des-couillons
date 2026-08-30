@@ -38,8 +38,8 @@
       </div>
 
       <div class="bg-[#0b132b] p-3 rounded-lg text-center border border-slate-800">
-        <span class="text-[10px] uppercase text-slate-400 block tracking-wider">Diagnostic API</span>
-        <span id="countdown" class="text-sm font-bold text-blue-400">Interrogation en cours...</span>
+        <span class="text-[10px] uppercase text-slate-400 block tracking-wider">Coup d'envoi dans</span>
+        <span id="countdown" class="text-sm font-bold text-blue-400">Chargement...</span>
       </div>
 
       <form id="form-prono" onsubmit="submitPronostic(event)" class="space-y-4">
@@ -96,12 +96,6 @@
       try {
         const res = await fetch('/api/match');
         const data = await res.json();
-        console.log("Diagnostic API :", data);
-
-        if (data.contenuApi && data.contenuApi.errors && Object.keys(data.contenuApi.errors).length > 0) {
-          document.getElementById('countdown').innerText = "Erreur API : " + JSON.stringify(data.contenuApi.errors);
-          return;
-        }
 
         if (data.contenuApi && data.contenuApi.response && data.contenuApi.response.length > 0) {
           const match = data.contenuApi.response[0];
@@ -118,20 +112,36 @@
           document.getElementById('info-stadium').innerText = `${match.fixture.venue?.name || 'Stade'} (${match.fixture.venue?.city || ''})`;
           document.getElementById('info-referee').innerText = match.fixture.referee || 'Non désigné';
 
-          document.getElementById('countdown').innerText = "Match chargé avec succès !";
+          startCountdown(matchDate);
         } else {
-          document.getElementById('countdown').innerText = "Tableau vide (Code HTTP: " + data.statusHttp + ")";
+          document.getElementById('countdown').innerText = "Aucun match disponible sur le plan gratuit";
         }
       } catch (e) {
-        document.getElementById('countdown').innerText = "Erreur de chargement du serveur";
-        console.error(e);
+        document.getElementById('countdown').innerText = "Erreur de chargement";
       }
       loadParieurs();
     }
 
+    function startCountdown(targetDate) {
+      function updateTimer() {
+        const diff = targetDate.getTime() - new Date().getTime();
+        if (diff <= 0) {
+          document.getElementById('countdown').innerText = "Match en cours !";
+          return;
+        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        document.getElementById('countdown').innerText = `${days}j ${hours}h ${minutes}m ${seconds}s`;
+      }
+      updateTimer();
+      setInterval(updateTimer, 1000);
+    }
+
     async function submitPronostic(e) {
       e.preventDefault();
-      if (!currentFixtureId) return alert("Match non chargé, impossible de pronostiquer.");
+      if (!currentFixtureId) return alert("Match non chargé.");
       const { error } = await supabaseClient.from('pronostics').insert([{
         nom_ami: document.getElementById('nom-ami').value.trim(),
         score_parier: `${document.getElementById('score-home').value}-${document.getElementById('score-away').value}`,
