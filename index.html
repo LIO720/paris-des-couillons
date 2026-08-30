@@ -47,7 +47,7 @@
     <main id="tab-pronos" class="bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
       
       <div class="text-center space-y-1">
-        <span id="match-subtitle" class="text-[11px] font-bold tracking-widest text-blue-400 uppercase">PROCHAIN MATCH</span>
+        <span id="match-subtitle" class="text-[11px] font-bold tracking-widest text-blue-400 uppercase">PROCHAIN MATCH C1</span>
         <p class="text-xs text-slate-300">Coup d'envoi dans</p>
         <div id="countdown" class="text-lg font-black text-amber-400 py-1">
           Chargement du décompte...
@@ -107,7 +107,7 @@
     <!-- ONGLET 2 : INFOS MATCH -->
     <main id="tab-infos" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-5">
       <div class="text-center space-y-1">
-        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Informations du Match</h2>
+        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Informations du Match C1</h2>
         <p class="text-[11px] text-slate-300">Détails officiels de la rencontre</p>
       </div>
 
@@ -139,7 +139,7 @@
     <main id="tab-resultats" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
       <div class="text-center space-y-2">
         <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Calendrier des 8 Journées</h2>
-        <p class="text-[11px] text-slate-300">Navigation de la Journée 1 à 8 (Connecté à l'API)</p>
+        <p class="text-[11px] text-slate-300">Navigation de la Journée 1 à 8 (Champions League)</p>
       </div>
 
       <!-- Boutons des 8 Journées -->
@@ -194,25 +194,33 @@
       }
     }
 
-    // Récupération du prochain match du PSG via l'API-Football et lancement du décompte
+    // Récupération du prochain match de Champions League du PSG
     async function fetchNextPSGMatch() {
       try {
-        const response = await fetch(`https://v3.football.api-sports.io/fixtures?team=85&next=1`, {
+        const response = await fetch(`https://v3.football.api-sports.io/fixtures?team=85&next=10`, {
           headers: { "x-apisports-key": API_FOOTBALL_KEY }
         });
         const data = await response.json();
         
         if (data.response && data.response.length > 0) {
-          const match = data.response[0];
-          const matchDate = new Date(match.fixture.date);
+          // Filtrer uniquement les matchs de Ligue des Champions (ID 2)
+          const clMatches = data.response.filter(m => m.league.id === 2);
           
-          document.getElementById('team-away-name').innerText = match.teams.home.id === 85 ? match.teams.away.name : match.teams.home.name;
-          document.getElementById('team-away-logo').src = match.teams.home.id === 85 ? match.teams.away.logo : match.teams.home.logo;
-          document.getElementById('team-away-logo').className = "w-10 h-10 object-contain drop-shadow-lg";
-          document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
-          document.getElementById('info-round').innerText = match.league.round || 'Phase de ligue';
+          if (clMatches.length > 0) {
+            const match = clMatches[0];
+            const matchDate = new Date(match.fixture.date);
+            
+            document.getElementById('team-away-name').innerText = match.teams.home.id === 85 ? match.teams.away.name : match.teams.home.name;
+            document.getElementById('team-away-logo').src = match.teams.home.id === 85 ? match.teams.away.logo : match.teams.home.logo;
+            document.getElementById('team-away-logo').className = "w-10 h-10 object-contain drop-shadow-lg";
+            document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+            document.getElementById('info-round').innerText = match.league.round || 'Phase de ligue';
 
-          startCountdown(matchDate);
+            startCountdown(matchDate);
+          } else {
+            document.getElementById('team-away-name').innerText = "En attente C1";
+            document.getElementById('countdown').innerText = "Aucun match C1 planifié";
+          }
         }
       } catch (err) {
         document.getElementById('countdown').innerText = "Calendrier en attente de l'UEFA";
