@@ -29,7 +29,7 @@
         <p class="text-[11px] font-medium text-slate-400 tracking-wider">développé par yosnick</p>
       </div>
 
-      <!-- Barre de Navigation / 4 Onglets mis à jour -->
+      <!-- Barre de Navigation / 4 Onglets -->
       <div class="flex justify-center space-x-1 pt-2 overflow-x-auto pb-1">
         <button type="button" onclick="switchTab('pronos')" id="btn-tab-pronos" class="px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer">Vos pronos</button>
         <button type="button" onclick="switchTab('infos')" id="btn-tab-infos" class="px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Info du match</button>
@@ -139,14 +139,14 @@
         </div>
       </div>
 
-      <!-- Bloc Commentaire IA de l'arbitre -->
+      <!-- Bloc Commentaire IA du Match (Mis à jour) -->
       <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2">
         <div class="flex items-center space-x-2">
           <span class="text-base">🤖</span>
-          <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">L'analyse de l'arbitre (IA)</span>
+          <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">L'analyse du match (IA)</span>
         </div>
         <p id="info-ai-comment" class="text-xs text-slate-300 italic leading-relaxed">
-          "Analyse de l'IA en cours..."
+          "Analyse tactique en cours..."
         </p>
       </div>
     </main>
@@ -232,16 +232,16 @@
       }
     }
 
-    // Générateur automatique de commentaire d'arbitre IA
-    function generateAutomaticRefereeComment(opponentName, isHome, roundName) {
-      const lieu = isHome ? "au Parc des Princes" : "à l'extérieur dans un contexte bouillant";
-      const humeurs = [
-        `"J'ai inspecté le dossier pour ce ${roundName}. Recevoir ${opponentName} ${lieu}, ça promet des duels musclés au milieu de terrain. Je sors les cartons dès la première minute si ça simule !"`,
-        `"Analyse validée pour ${opponentName} vs PSG. ${isHome ? "Le public parisien va mettre la pression" : "Il va falloir garder ses nerfs hors de ses bases"}. La VAR sera intransigeante dans la surface !"`,
-        `"Match piège en perspective. ${opponentName} pratique un jeu rapide, mes assistants et moi devrons avoir l'œil partout. Que le meilleur gagne, mais discipline exigée !"`,
-        `"C'est le genre d'affiche de Champions League où la tension monte très vite. J'attends un fair-play total face à ${opponentName}, sinon ça va sanctionner sévère."`
+    // Générateur automatique de commentaire tactique et d'analyse d'équipe IA
+    function generateAutomaticMatchComment(opponentName, isHome, roundName) {
+      const lieu = isHome ? "au Parc des Princes" : "à l'extérieur";
+      const analyses = [
+        `"Choc tactique en perspective pour ce ${roundName}. Face à ${opponentName} ${lieu}, le PSG devra imposer sa maîtrise technique dans l'entrejeu tout en verrouillant ses transitions défensives."`,
+        `"Belle opposition de style en vue contre ${opponentName}. ${isHome ? "Le soutien du public parisien sera un atout clé" : "Il faudra faire preuve de solidité d'entrée"} pour espérer l'emporter."`,
+        `"Ce ${roundName} face à ${opponentName} s'annonce disputé. L'efficacité offensive des deux côtés fera basculer la rencontre dans les derniers mètres."`,
+        `"Un test européen majeur pour les Parisiens face à ${opponentName}. La bataille du milieu de terrain sera décisive pour prendre l'ascendant ${lieu}."`
       ];
-      return humeurs[opponentName.length % humeurs.length];
+      return analyses[opponentName.length % analyses.length];
     }
 
     // Récupération exclusive du prochain match C1 du PSG
@@ -268,7 +268,7 @@
             document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
             document.getElementById('info-round').innerText = roundName;
             document.getElementById('info-referee').innerText = match.fixture.referee || 'Non désigné';
-            document.getElementById('info-ai-comment').innerText = generateAutomaticRefereeComment(awayTeamName, isHome, roundName);
+            document.getElementById('info-ai-comment').innerText = generateAutomaticMatchComment(awayTeamName, isHome, roundName);
 
             startCountdown(matchDate);
           } else {
