@@ -47,11 +47,17 @@
     <!-- ONGLET 1 : PRONOSTICS -->
     <main id="tab-pronos" class="bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
       
-      <div class="text-center space-y-1">
+      <div class="text-center space-y-2">
         <span id="match-subtitle" class="text-[11px] font-bold tracking-widest text-blue-400 uppercase">PROCHAIN MATCH C1</span>
         <p class="text-xs text-slate-300">Coup d'envoi dans</p>
         <div id="countdown" class="text-lg font-black text-amber-400 py-1">
           Chargement du décompte...
+        </div>
+
+        <!-- Bloc discret : Prochain match d'après (J2) -->
+        <div id="next-match-block" class="hidden bg-slate-950/60 border border-slate-800/80 rounded-2xl p-2.5 text-center space-y-0.5 max-w-xs mx-auto">
+          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Match suivant (Journée 2)</span>
+          <div id="next-match-text" class="text-xs font-semibold text-slate-200"></div>
         </div>
       </div>
 
@@ -139,7 +145,7 @@
         </div>
       </div>
 
-      <!-- Bloc Commentaire IA du Match (Mis à jour) -->
+      <!-- Bloc Commentaire IA du Match -->
       <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2">
         <div class="flex items-center space-x-2">
           <span class="text-base">🤖</span>
@@ -232,7 +238,6 @@
       }
     }
 
-    // Générateur automatique de commentaire tactique et d'analyse d'équipe IA
     function generateAutomaticMatchComment(opponentName, isHome, roundName) {
       const lieu = isHome ? "au Parc des Princes" : "à l'extérieur";
       const analyses = [
@@ -244,7 +249,7 @@
       return analyses[opponentName.length % analyses.length];
     }
 
-    // Récupération exclusive du prochain match C1 du PSG
+    // Récupération des matchs du PSG et affichage du prochain + celui d'après
     async function fetchNextPSGMatch() {
       try {
         const response = await fetch(`https://v3.football.api-sports.io/fixtures?team=85&next=10`, {
@@ -256,6 +261,7 @@
           const clMatches = data.response.filter(m => m.league.id === 2);
           
           if (clMatches.length > 0) {
+            // Match Actuel (Prochain)
             const match = clMatches[0];
             const matchDate = new Date(match.fixture.date);
             const isHome = match.teams.home.id === 85;
@@ -271,6 +277,23 @@
             document.getElementById('info-ai-comment').innerText = generateAutomaticMatchComment(awayTeamName, isHome, roundName);
 
             startCountdown(matchDate);
+
+            // Match Suivant (Journée 2 / d'après)
+            if (clMatches.length > 1) {
+              const nextMatch = clMatches[1];
+              const nextDate = new Date(nextMatch.fixture.date);
+              const nextIsHome = nextMatch.teams.home.id === 85;
+              const nextOpponent = nextIsHome ? nextMatch.teams.away.name : nextMatch.teams.home.name;
+              const nextRound = nextMatch.league.round || 'Phase de ligue';
+              const nextDateFormatted = nextDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+              
+              const nextBlock = document.getElementById('next-match-block');
+              const nextText = document.getElementById('next-match-text');
+              if (nextBlock && nextText) {
+                nextText.innerHTML = `<span class="text-blue-400">${nextRound}</span> : vs <span class="text-white">${nextOpponent}</span> (${nextDateFormatted})`;
+                nextBlock.classList.remove('hidden');
+              }
+            }
           } else {
             document.getElementById('team-away-name').innerText = "En attente C1";
             document.getElementById('countdown').innerText = "Aucun match C1 planifié";
@@ -303,7 +326,6 @@
       }, 1000);
     }
 
-    // Répartition stricte et chronologique des 144 matchs en 8 journées exactes (18 matchs par journée)
     async function initMatchdaysNav() {
       const nav = document.getElementById('matchdays-nav');
       if (!nav) return;
