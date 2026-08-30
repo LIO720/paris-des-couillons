@@ -39,8 +39,8 @@
           <span class="text-amber-400 font-black text-lg">VS</span>
         </div>
         <div class="text-center w-1/3">
-          <img id="team-away-logo" src="https://media.api-sports.io/football/teams/0.png" alt="Adversaire" class="w-12 h-12 mx-auto object-contain mb-1">
-          <span id="team-away-name" class="text-xs font-bold block truncate">Chargement...</span>
+          <img id="team-away-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'%3E%3Cpath d='M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-3z'/%3E%3C/svg%3E" alt="Adversaire" class="w-12 h-12 mx-auto object-contain mb-1">
+          <span id="team-away-name" class="text-xs font-bold block truncate">Prochain adversaire</span>
         </div>
       </div>
 
@@ -100,7 +100,6 @@
   </div>
 
   <script>
-    // Config Supabase & API-Football
     const SUPABASE_URL = "https://bgcuxroguucumbveptvb.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnY3V4cm9ndXVjdW1idmVwdHZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxNTMwNDMsImV4cCI6MjA1NTcyOTA0M30.4i4P8bE0gX0K2d3C1r2R4u5t6y7u8i9o0p1a2s3d4f5"; 
     const API_FOOTBALL_KEY = "15a5eabb2d17b76fb922cd808a574779";
@@ -109,55 +108,69 @@
     let currentFixtureId = null;
     let timerInterval = null;
 
-    // 1. Récupération directe du vrai prochain match PSG depuis l'API
+    // Image SVG neutre de remplacement en cas d'absence de logo
+    const placeholderLogo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'%3E%3Cpath d='M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-3z'/%3E%3C/svg%3E";
+
     async function fetchNextPSGMatch() {
-      try {
-        const headers = { "x-apisports-key": API_FOOTBALL_KEY };
-        
-        // Requête élargie sur les 5 prochains matchs pour éviter les réponses vides de next=1
-        let res = await fetch("https://v3.football.api-sports.io/fixtures?team=85&next=5", { headers });
-        let data = await res.json();
+      let match = null;
+      const headers = { "x-apisports-key": API_FOOTBALL_KEY };
 
-        // Récupération du premier match qui n'a pas encore commencé
-        let match = null;
-        if (data.response && data.response.length > 0) {
-          match = data.response.find(m => m.fixture.status.short === "NS" || m.fixture.status.short === "TBD") || data.response[0];
+      // URLs alternatives pour interroger l'API
+      const endpoints = [
+        "https://v3.football.api-sports.io/fixtures?team=85&next=10",
+        "https://v3.football.api-sports.io/fixtures?league=61&next=10",
+        "https://v3.football.api-sports.io/fixtures?team=85&season=2025&status=NS",
+        "https://v3.football.api-sports.io/fixtures?team=85&season=2026&status=NS"
+      ];
+
+      for (let url of endpoints) {
+        try {
+          let res = await fetch(url, { headers });
+          let data = await res.json();
+          if (data.response && data.response.length > 0) {
+            match = data.response.find(m => 
+              (m.teams.home.id === 85 || m.teams.away.id === 85) && 
+              (m.fixture.status.short === "NS" || m.fixture.status.short === "TBD")
+            ) || data.response[0];
+            
+            if (match) break;
+          }
+        } catch (e) {
+          console.warn("Échec requête API :", url, e);
         }
+      }
 
-        if (!match) {
-          document.getElementById('countdown').innerText = "Aucun match à venir programmé.";
-          return;
-        }
-
-        // Attribution de l'ID officiel du match API
+      if (match) {
         currentFixtureId = match.fixture.id;
         const matchDate = new Date(match.fixture.date);
 
-        // Affichage des logos et noms de clubs
         document.getElementById('team-home-name').innerText = match.teams.home.name;
         document.getElementById('team-home-logo').src = match.teams.home.logo;
         document.getElementById('team-away-name').innerText = match.teams.away.name;
         document.getElementById('team-away-logo').src = match.teams.away.logo;
 
-        // Informations détaillées
         document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
-        document.getElementById('info-round').innerText = `${match.league.name} - ${match.league.round}`;
-        document.getElementById('info-stadium').innerText = `${match.fixture.venue.name || 'Stade inconnu'} (${match.fixture.venue.city || '-'})`;
+        document.getElementById('info-round').innerText = `${match.league.name || 'Compétition'} - ${match.league.round || ''}`;
+        document.getElementById('info-stadium').innerText = `${match.fixture.venue?.name || 'Stade inconnu'} (${match.fixture.venue?.city || '-'})`;
         document.getElementById('info-referee').innerText = match.fixture.referee || 'Non désigné';
 
-        // Lancement du compte à rebours
         startCountdown(matchDate);
-
-        // Chargement des pronostics enregistrés pour cette rencontre
-        loadParieurs();
-
-      } catch (err) {
-        console.error("Erreur lors de la récupération de l'API Football :", err);
-        document.getElementById('countdown').innerText = "Erreur de connexion API";
+      } else {
+        // ID de secours permettant la saisie des pronostics et l'affichage de la cagnotte
+        currentFixtureId = 850001;
+        document.getElementById('team-away-logo').src = placeholderLogo;
+        document.getElementById('team-away-name').innerText = "Prochain Adversaire";
+        document.getElementById('countdown').innerText = "Pronostics ouverts (en attente calendrier API)";
+        document.getElementById('info-date').innerText = "En attente de programmation";
+        document.getElementById('info-round').innerText = "Compétition officielle";
+        document.getElementById('info-stadium').innerText = "Stade non défini";
+        document.getElementById('info-referee').innerText = "Non désigné";
       }
+
+      // Rechargement systématique de la cagnotte et de la liste Supabase
+      loadParieurs();
     }
 
-    // 2. Compte à rebours du match
     function startCountdown(targetDate) {
       if (timerInterval) clearInterval(timerInterval);
       
@@ -183,13 +196,11 @@
       timerInterval = setInterval(updateTimer, 1000);
     }
 
-    // 3. Soumission du pronostic dans Supabase avec le fixture_id exact
     async function submitPronostic(e) {
       e.preventDefault();
 
       if (!currentFixtureId) {
-        alert("Impossible d'enregistrer le pronostic : le match n'est pas encore identifié par l'API.");
-        return;
+        currentFixtureId = 850001;
       }
 
       const nom = document.getElementById('nom-ami').value.trim();
@@ -216,7 +227,6 @@
       }
     }
 
-    // 4. Chargement des parieurs et de la cagnotte depuis Supabase
     async function loadParieurs() {
       if (!currentFixtureId) return;
 
@@ -233,7 +243,6 @@
       const listEl = document.getElementById('list-parieurs');
       const cagnotteEl = document.getElementById('cagnotte-amount');
 
-      // Calcul de la cagnotte (5 € par pronostic enregistré)
       const count = data ? data.length : 0;
       cagnotteEl.innerText = `${count * 5} €`;
 
@@ -250,7 +259,6 @@
       `).join('');
     }
 
-    // Gestion des onglets UI
     function switchTab(tab) {
       document.getElementById('view-prono').classList.add('hidden');
       document.getElementById('view-infos').classList.add('hidden');
@@ -272,7 +280,6 @@
       }
     }
 
-    // Initialisation au chargement de la page
     window.addEventListener('DOMContentLoaded', fetchNextPSGMatch);
   </script>
 </body>
