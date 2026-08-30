@@ -1,355 +1,1052 @@
-let squadList = [];
-        if (dataSquad.response && dataSquad.response.length > 0) {
-          squadList = dataSquad.response[0].players || [];
-        }
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paris des Couillons – Champions League</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 relative overflow-x-hidden">
 
-        content.innerHTML = `
-          <div class="text-center space-y-3">
-            <img src="${team.logo}" alt="${team.name}" class="w-20 h-20 object-contain mx-auto drop-shadow-lg">
-            <div>
-              <h3 class="text-base font-black text-white">${team.name}</h3>
-              <p class="text-xs text-blue-400 font-semibold">${team.country} • Fondé en ${team.founded || 'N/C'}</p>
-            </div>
-          </div>
-          <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
-            <div class="flex justify-between border-b border-slate-800 pb-1.5">
-              <span class="text-slate-400">Stade</span>
-              <span class="font-semibold text-white">${venue.name} (${venue.capacity ? venue.capacity.toLocaleString() + ' places' : ''})</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-400">Ville du stade</span>
-              <span class="font-semibold text-white">${venue.city || 'N/C'}</span>
-            </div>
-          </div>
-          ${stats ? `
-            <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
-              <h4 class="font-bold text-blue-400 uppercase tracking-wider text-[10px] mb-1">Statistiques C1 (Saison 2026)</h4>
-              <div class="flex justify-between border-b border-slate-800 pb-1">
-                <span class="text-slate-400">Matchs joués</span>
-                <span class="font-semibold text-white">${stats.fixtures.played.total}</span>
-              </div>
-              <div class="flex justify-between border-b border-slate-800 pb-1">
-                <span class="text-slate-400">Victoires / Nuls / Défaites</span>
-                <span class="font-semibold text-white">${stats.fixtures.wins.total} / ${stats.fixtures.draws.total} / ${stats.fixtures.loses.total}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-400">Buts marqués / encaissés</span>
-                <span class="font-semibold text-white">${stats.goals.for.total.total} / ${stats.goals.against.total.total}</span>
-              </div>
-            </div>
-          ` : ''}
-          <div class="space-y-2">
-            <h4 class="font-bold text-slate-300 uppercase tracking-wider text-[10px]">Effectif (${squadList.length} joueurs)</h4>
-            <div class="max-h-48 overflow-y-auto space-y-1 pr-1">
-              ${squadList.map(p => `
-                <div class="flex justify-between items-center bg-slate-950/50 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
-                  <span class="font-semibold text-slate-200">${p.name} <span class="text-[10px] text-slate-400">(${p.position})</span></span>
-                  <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono text-[10px]">#${p.number || '-'}</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `;
-      } else {
-        content.innerHTML = `<div class="text-center text-red-400 py-10">Impossible de charger les informations de ce club.</div>`;
-      }
-    } catch (err) {
-      content.innerHTML = `<div class="text-center text-red-400 py-10">Erreur lors de la récupération des données du club.</div>`;
-    }
-  }
+  <!-- Arrière-plan Stade de Football -->
+  <div class="fixed inset-0 z-0 bg-slate-900 bg-cover bg-center bg-no-repeat scale-105" 
+       style="background-color: #064e3b; background-image: linear-gradient(to bottom, rgba(3, 7, 18, 0.8), rgba(2, 44, 34, 0.85)), url('https://images.unsplash.com/photo-1518604668838-89a1f24d7b6f?q=80&w=2070&auto=format&fit=crop');">
+    <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-[1px]"></div>
+  </div>
 
-  function closeClubModal() {
-    const modal = document.getElementById('club-modal');
-    if (modal) modal.classList.add('hidden');
-  }
+  <div class="w-full max-w-md space-y-6 relative z-10">
+    
+    <!-- En-tête : Bannière Champions League -->
+    <div class="text-center space-y-3">
+      <div class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-900/90 via-blue-800 to-blue-900/90 border border-blue-500/50 shadow-2xl backdrop-blur-md flex items-center justify-center space-x-3">
+        <img src="https://media.api-sports.io/football/leagues/2.png" alt="UEFA Champions League" class="w-10 h-10 object-contain filter brightness-0 invert drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]">
+        <span class="text-lg font-black tracking-widest text-white uppercase drop-shadow-md">Champions League</span>
+      </div>
 
-  function closeHistoryModal() {
-    const modal = document.getElementById('history-modal');
-    if (modal) modal.classList.add('hidden');
-  }
+      <div class="space-y-1">
+        <h1 class="text-xl font-black tracking-wider uppercase text-white drop-shadow-md">Le Paris des Couillons</h1>
+        <p class="text-[11px] font-medium text-slate-400 tracking-wider">développé par yosnick</p>
+      </div>
 
-  async function getCagnotteSupabase() {
-    const { data } = await supabaseClient
-      .from('cagnotte_globale')
-      .select('montant')
-      .eq('id', 1)
-      .single();
-    return data ? data.montant : 0;
-  }
-
-  async function setCagnotteSupabase(nouveauMontant) {
-    await supabaseClient
-      .from('cagnotte_globale')
-      .update({ montant: nouveauMontant })
-      .eq('id', 1);
-  }
-
-  async function loadParieurs() {
-    const listDiv = document.getElementById('parieurs-list');
-    const cagnotteSpan = document.getElementById('cagnotte');
-    if (!listDiv) return;
-
-    try {
-      const montantCagnotte = await getCagnotteSupabase();
-      if (cagnotteSpan) cagnotteSpan.innerText = montantCagnotte + " €";
-
-      if (!currentFixtureId) {
-        listDiv.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun match actif.</span>`;
-        return;
-      }
-
-      const { data: pronos, error } = await supabaseClient
-        .from('pronostics')
-        .select('*')
-        .eq('fixture_id', currentFixtureId)
-        .order('id', { ascending: false });
-
-      if (error || !pronos || pronos.length === 0) {
-        listDiv.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun pronostic pour ce match pour le moment. Soyez le premier !</span>`;
-        return;
-      }
-
-      listDiv.innerHTML = pronos.map(p => {
-        let isExact = false;
-        if (currentMatchFinished) {
-          const [ph, pa] = p.score_parier.split('-').map(Number);
-          isExact = (ph === realHomeGoals && pa === realAwayGoals);
-        }
-
-        const displayScore = currentMatchFinished ? p.score_parier : '🔒 masqué';
-        const displayMin = currentMatchFinished ? p.minute_1er_but + "'" : '🔒';
-
-        return `
-          <div class="bg-slate-950/70 border ${isExact ? 'border-amber-500 bg-amber-500/10' : 'border-slate-800'} rounded-xl p-2.5 flex items-center justify-between text-xs">
-            <div class="flex items-center space-x-2">
-              <span class="font-bold text-white">${p.nom_ami}</span>
-              ${isExact ? '<span class="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black text-[9px] uppercase">Exact 🏆</span>' : ''}
-            </div>
-            <div class="flex items-center space-x-3">
-              <span class="bg-blue-950/80 text-blue-300 px-2 py-0.5 rounded font-mono font-bold">${displayScore}</span>
-              <span class="text-slate-400 text-[11px]">Min: <strong class="text-amber-400">${displayMin}</strong></span>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      if (currentMatchFinished) {
-        const commentContainer = document.getElementById('winner-ai-comment-container');
-        const commentText = document.getElementById('winner-ai-comment-text');
-        if (commentContainer && commentText) {
-          const winners = pronos.filter(p => {
-            const [ph, pa] = p.score_parier.split('-').map(Number);
-            return ph === realHomeGoals && pa === realAwayGoals;
-          });
-
-          if (winners.length > 0) {
-            commentText.innerText = `Le match s'est soldé par un score de ${realHomeGoals}-${realAwayGoals}. Bravo à ${winners.map(w => w.nom_ami).join(', ')} qui remporte la cagnotte !`;
-          } else {
-            commentText.innerText = `Score final : ${realHomeGoals}-${realAwayGoals}. Aucun pronostic exact trouvé ce soir, la cagnotte continue de s'accumuler pour le prochain match !`;
-          }
-          commentContainer.classList.remove('hidden');
-        }
-      }
-
-    } catch (err) {
-      listDiv.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center">Erreur lors du chargement des parieurs.</span>`;
-    }
-  }
-
-  document.getElementById('prono-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const score1 = document.getElementById('score1').value;
-    const score2 = document.getElementById('score2').value;
-    const minute = document.getElementById('minute').value;
-    const nom = document.getElementById('nom').value.trim();
-    const statusDiv = document.getElementById('status');
-
-    if (!currentFixtureId) {
-      statusDiv.innerHTML = `<span class="text-red-400">Erreur : Aucun match actif sélectionné.</span>`;
-      return;
-    }
-
-    statusDiv.innerHTML = `<span class="text-blue-400">Enregistrement en cours...</span>`;
-
-    try {
-      const scoreParier = `${score1}-${score2}`;
+      <!-- Barre de Navigation / 5 Onglets -->
+      <div class="flex flex-wrap justify-center gap-1 pt-2 pb-1">
+        <button type="button" onclick="switchTab('pronos')" id="btn-tab-pronos" class="px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer">Vos pronos</button>
+        <button type="button" onclick="switchTab('infos')" id="btn-tab-infos" class="px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Info du match</button>
+        <button type="button" onclick="switchTab('resultats')" id="btn-tab-resultats" class="px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Match journée</button>
+        <button type="button" onclick="switchTab('tous-les-paris')" id="btn-tab-tous-les-paris" class="px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Tous les paris</button>
+        <button type="button" onclick="switchTab('classement')" id="btn-tab-classement" class="px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Classement</button>
+      </div>
       
-      const { error } = await supabaseClient
-        .from('pronostics')
-        .insert([{
-          fixture_id: currentFixtureId,
-          nom_ami: nom,
-          score_parier: scoreParier,
-          minute_1er_but: parseInt(minute)
-        }]);
+      <!-- Cagnotte Globale -->
+      <div class="inline-block mt-1 px-6 py-2 rounded-xl bg-slate-900/90 border border-slate-700/80 shadow-lg backdrop-blur-md">
+        <span class="block text-[10px] text-slate-400 uppercase tracking-widest font-bold">Cagnotte en jeu (5€ / pari)</span>
+        <span id="cagnotte" class="text-xl font-black text-amber-400">0 €</span>
+      </div>
+    </div>
 
-      if (error) throw error;
+    <!-- ONGLET 1 : PRONOSTICS -->
+    <main id="tab-pronos" class="bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
+      
+      <div class="text-center space-y-2">
+        <span id="match-subtitle" class="text-[11px] font-bold tracking-widest text-blue-400 uppercase">PROCHAIN MATCH C1</span>
+        <p class="text-xs text-slate-300">Coup d'envoi dans</p>
+        <div id="countdown" class="text-lg font-black text-amber-400 py-1">
+          Chargement du décompte...
+        </div>
 
-      const currentCagnotte = await getCagnotteSupabase();
-      const nouveauMontant = currentCagnotte + 5;
-      await setCagnotteSupabase(nouveauMontant);
+        <!-- Bloc discret : Prochain match d'après -->
+        <div id="next-match-block" class="hidden bg-slate-950/60 border border-slate-800/80 rounded-2xl p-2.5 text-center space-y-0.5 max-w-xs mx-auto">
+          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Match suivant</span>
+          <div id="next-match-text" class="text-xs font-semibold text-slate-200"></div>
+        </div>
+      </div>
 
-      statusDiv.innerHTML = `<span class="text-green-400">Prono validé avec succès ! 5€ ajoutés à la cagnotte.</span>`;
-      document.getElementById('prono-form').reset();
-      loadParieurs();
-    } catch (err) {
-      statusDiv.innerHTML = `<span class="text-red-400">Erreur lors de l'enregistrement du pronostic.</span>`;
-    }
-  });
+      <!-- Équipes (Logos cliquables) -->
+      <div class="flex items-center justify-between px-4 py-3 bg-slate-950/70 rounded-2xl border border-slate-800 shadow-inner">
+        <div class="flex flex-col items-center space-y-2 w-1/3 text-center">
+          <img id="team-home-logo" src="https://media.api-sports.io/football/teams/85.png" alt="PSG" class="w-12 h-12 object-contain filter drop-shadow-lg transition transform hover:scale-110 cursor-pointer" title="Voir les infos du PSG">
+          <span id="team-home-name" class="text-xs font-bold text-slate-200 truncate w-full">PSG</span>
+          <span class="text-[9px] text-blue-400 font-semibold">(Cliquez logo)</span>
+        </div>
+        <div class="text-xs font-black text-slate-400 tracking-widest">VS</div>
+        <div class="flex flex-col items-center space-y-2 w-1/3 text-center">
+          <div id="team-away-container" class="w-12 h-12 flex items-center justify-center bg-slate-900 rounded-full border border-slate-700 shadow-inner p-1 transition transform hover:scale-110 cursor-pointer" title="Voir les infos de l'adversaire">
+            <img id="team-away-logo" src="https://media.api-sports.io/football/leagues/2.png" alt="Champions League" class="w-10 h-10 object-contain filter brightness-0 invert drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]">
+          </div>
+          <span id="team-away-name" class="text-xs font-bold text-slate-300 truncate w-full">En attente UEFA</span>
+          <span class="text-[9px] text-blue-400 font-semibold" id="away-click-label">(Cliquez logo)</span>
+        </div>
+      </div>
 
-  function startCountdown(matchDate) {
-    const countdownEl = document.getElementById('countdown');
-    if (!countdownEl) return;
+      <!-- Formulaire Pronostic -->
+      <form id="prono-form" class="space-y-4">
+        <div class="text-center">
+          <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-2">Votre Pronostic</label>
+          <div class="flex items-center justify-center space-x-3">
+            <input type="number" id="score1" min="0" max="20" required value="0" class="w-16 h-12 text-center text-xl font-bold bg-slate-950/90 border border-slate-700 rounded-xl focus:border-blue-500 focus:outline-none transition">
+            <span class="text-slate-400 font-bold">-</span>
+            <input type="number" id="score2" min="0" max="20" required value="0" class="w-16 h-12 text-center text-xl font-bold bg-slate-950/90 border border-slate-700 rounded-xl focus:border-blue-500 focus:outline-none transition">
+          </div>
+        </div>
 
-    function updateTimer() {
-      const now = new Date();
-      const diff = matchDate - now;
+        <div>
+          <input type="number" id="minute" min="0" max="120" required placeholder="Minute du 1er but (ex: 34)" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-center focus:border-blue-500 focus:outline-none placeholder-slate-400 transition">
+        </div>
 
-      if (diff <= 0) {
-        countdownEl.innerText = "Match en cours ou terminé !";
-        return;
+        <div>
+          <input type="text" id="nom" required placeholder="Votre Prénom" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-center focus:border-blue-500 focus:outline-none placeholder-slate-400 transition">
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3 text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-blue-600/30 active:scale-[0.98] cursor-pointer">
+          Valider mon prono (5 €)
+        </button>
+      </form>
+
+      <div id="status" class="text-center text-[11px] font-semibold"></div>
+
+      <!-- Parieurs du match -->
+      <div class="border-t border-slate-800 pt-4 space-y-2.5">
+        <h2 class="text-slate-300 text-[11px] uppercase font-bold tracking-wider text-center">Liste des Parieurs</h2>
+        <div id="parieurs-list" class="space-y-1.5">
+          <span class="text-slate-400 italic text-[11px] block text-center">Chargement...</span>
+        </div>
+
+        <!-- BLOC COMMENTAIRE IA / RÉSULTAT DU MATCH -->
+        <div id="winner-ai-comment-container" class="hidden bg-slate-950/80 border border-amber-500/50 rounded-2xl p-4 space-y-2 shadow-xl mt-3">
+          <div class="flex items-center space-x-2">
+            <span class="text-base">🏆🤖</span>
+            <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Le mot de l'IA (Vestiaire)</span>
+          </div>
+          <p id="winner-ai-comment-text" class="text-xs text-slate-200 italic leading-relaxed">
+            "Analyse du vainqueur en cours..."
+          </p>
+        </div>
+      </div>
+
+      <!-- Rappel des Règles -->
+      <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2 text-[11px] text-slate-300">
+        <div class="flex items-center space-x-2 text-blue-400 font-bold uppercase tracking-wider">
+          <span>ℹ️</span>
+          <span>Règles & Départage</span>
+        </div>
+        <ul class="space-y-1 text-slate-400 list-disc list-inside">
+          <li><strong class="text-slate-200">Confidentialité :</strong> Les pronostics des autres joueurs restent masqués jusqu'au coup de sifflet final.</li>
+          <li><strong class="text-slate-200">Cagnotte :</strong> La cagnotte s'accumule de match en match (5€/pari) si personne ne trouve le score exact.</li>
+        </ul>
+      </div>
+    </main>
+
+    <!-- ONGLET 2 : INFOS MATCH -->
+    <main id="tab-infos" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-5">
+      <div class="text-center space-y-1">
+        <h2 id="info-match-title" class="text-xs font-bold tracking-widest text-blue-400 uppercase">PSG vs En attente UEFA</h2>
+        <p class="text-[11px] text-slate-300">Détails officiels de la rencontre</p>
+      </div>
+
+      <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs">
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Compétition</span>
+          <span class="font-semibold text-white" id="info-competition">UEFA Champions League</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Phase de qualification</span>
+          <span class="font-semibold text-white" id="info-round">Journée 1</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Date du match</span>
+          <span class="font-semibold text-white" id="info-date">En attente UEFA</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Arbitre</span>
+          <span class="font-semibold text-white" id="info-referee">Non désigné</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">Stade</span>
+          <span class="font-semibold text-white" id="info-stadium">Parc des Princes</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Diffuseur TV</span>
+          <span class="font-semibold text-amber-400">Canal+ / RMC Sport</span>
+        </div>
+      </div>
+
+      <!-- Bloc Commentaire IA du Match -->
+      <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2">
+        <div class="flex items-center space-x-2">
+          <span class="text-base">🤖</span>
+          <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">L'analyse du match (IA)</span>
+        </div>
+        <p id="info-ai-comment" class="text-xs text-slate-300 italic leading-relaxed">
+          "Analyse tactique en cours..."
+        </p>
+      </div>
+    </main>
+
+    <!-- ONGLET 3 : RÉSULTATS & JOURNÉES -->
+    <main id="tab-resultats" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
+      <div class="text-center space-y-2">
+        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Calendrier & Historique par match</h2>
+        <p class="text-[11px] text-slate-300">Cliquez sur un match pour voir les paris associés</p>
+      </div>
+
+      <!-- Boutons des 8 Journées -->
+      <div class="flex overflow-x-auto gap-1.5 pb-2 scrollbar-none" id="matchdays-nav">
+        <!-- Généré dynamiquement en JS -->
+      </div>
+
+      <div id="ai-resultats-container" class="space-y-3">
+        <span class="text-slate-400 italic text-[11px] block text-center">Sélectionnez une journée ci-dessus.</span>
+      </div>
+    </main>
+
+    <!-- ONGLET 4 : TOUS LES PARIS GLOBAL -->
+    <main id="tab-tous-les-paris" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-4">
+      <div class="text-center space-y-1">
+        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Historique Global de Tous les Paris</h2>
+        <p class="text-[11px] text-slate-300">Récapitulatif complet de tous les paris enregistrés</p>
+      </div>
+
+      <div id="all-bets-container" class="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+        <span class="text-slate-400 italic text-[11px] block text-center py-8">Chargement de l'historique global...</span>
+      </div>
+    </main>
+
+    <!-- ONGLET 5 : CLASSEMENT GÉNÉRAL C1 -->
+    <main id="tab-classement" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-4">
+      <div class="text-center space-y-1">
+        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Classement Phase de Ligue</h2>
+        <p class="text-[11px] text-slate-300">Top 36 - UEFA Champions League</p>
+      </div>
+
+      <div id="standings-container" class="space-y-1.5 max-h-96 overflow-y-auto pr-1">
+        <span class="text-slate-400 italic text-[11px] block text-center">Chargement du classement...</span>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- MODAL FICHE CLUB COMPLÈTE -->
+  <div id="club-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 space-y-5 relative shadow-2xl">
+      <button onclick="closeClubModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-base bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
+      <div id="club-modal-content" class="space-y-4 pt-2">
+        <div class="text-center text-slate-400 py-10">Chargement des informations du club...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL HISTORIQUE DES PARIS D'UN MATCH -->
+  <div id="history-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-md max-h-[85vh] overflow-y-auto p-6 space-y-5 relative shadow-2xl">
+      <button onclick="closeHistoryModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-base bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
+      <div id="history-modal-content" class="space-y-4 pt-2">
+        <div class="text-center text-slate-400 py-10">Chargement des paris...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://bgcuxroguucumbveptvb.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_MuYlr1whhZ7eFS1D8LoP7Q_0NV70N1X";
+    const API_FOOTBALL_KEY = '15a5eabb2d17b76fb922cd808a574779';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let allClFixtures = [];
+    let matchdaysChunks = [];
+    let currentHomeTeamId = 85;
+    let currentAwayTeamId = null;
+    let currentMatchFinished = false;
+    let realHomeGoals = 0;
+    let realAwayGoals = 0;
+    let realFirstGoalMinute = null;
+    let currentFixtureId = null;
+
+    function switchTab(tab) {
+      const tabPronos = document.getElementById('tab-pronos');
+      const tabInfos = document.getElementById('tab-infos');
+      const tabResultats = document.getElementById('tab-resultats');
+      const tabTousLesParis = document.getElementById('tab-tous-les-paris');
+      const tabClassement = document.getElementById('tab-classement');
+      
+      const btnPronos = document.getElementById('btn-tab-pronos');
+      const btnInfos = document.getElementById('btn-tab-infos');
+      const btnResultats = document.getElementById('btn-tab-resultats');
+      const btnTousLesParis = document.getElementById('btn-tab-tous-les-paris');
+      const btnClassement = document.getElementById('btn-tab-classement');
+
+      if (!tabPronos || !tabInfos || !tabResultats || !tabTousLesParis || !tabClassement) return;
+
+      tabPronos.classList.add('hidden');
+      tabInfos.classList.add('hidden');
+      tabResultats.classList.add('hidden');
+      tabTousLesParis.classList.add('hidden');
+      tabClassement.classList.add('hidden');
+
+      btnPronos.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnInfos.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnResultats.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnTousLesParis.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnClassement.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+
+      if (tab === 'pronos') {
+        tabPronos.classList.remove('hidden');
+        btnPronos.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+      } else if (tab === 'infos') {
+        tabInfos.classList.remove('hidden');
+        btnInfos.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+      } else if (tab === 'resultats') {
+        tabResultats.classList.remove('hidden');
+        btnResultats.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        initMatchdaysNav();
+      } else if (tab === 'tous-les-paris') {
+        tabTousLesParis.classList.remove('hidden');
+        btnTousLesParis.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        fetchAllBetsGlobalHistory();
+      } else if (tab === 'classement') {
+        tabClassement.classList.remove('hidden');
+        btnClassement.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        fetchStandings();
       }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / 1000 / 60) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-
-      countdownEl.innerText = `${days}j ${hours}h ${minutes}m ${seconds}s`;
     }
 
-    updateTimer();
-    setInterval(updateTimer, 1000);
-  }
+    async function fetchAllBetsGlobalHistory() {
+      const container = document.getElementById('all-bets-container');
+      if (!container) return;
 
-  async function initMatchdaysNav() {
-    const navContainer = document.getElementById('matchdays-nav');
-    const resultatsContainer = document.getElementById('ai-resultats-container');
-    if (!navContainer || !resultatsContainer) return;
+      container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Chargement de tous les paris...</span>`;
 
-    if (allClFixtures.length === 0) {
-      resultatsContainer.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Chargement du calendrier...</span>`;
       try {
-        const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=2&season=2026`, {
+        const { data: pronos, error } = await supabaseClient
+          .from('pronostics')
+          .select('*')
+          .order('id', { ascending: false });
+
+        if (error || !pronos || pronos.length === 0) {
+          // Si aucun pari en base, on remet le stockage local de la cagnotte à 0 propre
+          localStorage.removeItem('cagnotte_precedente');
+          container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Aucun pari enregistré pour le moment.</span>`;
+          return;
+        }
+
+        if (allClFixtures.length === 0) {
+          const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=2&season=2026`, {
+            headers: { "x-apisports-key": API_FOOTBALL_KEY }
+          });
+          const data = await response.json();
+          if (data.response) {
+            allClFixtures = data.response.filter(m => {
+              const r = (m.league.round || '').toLowerCase();
+              return !r.includes('qualifying') && !r.includes('preliminary') && !r.includes('play-off') && !r.includes('playoffs') && !r.includes('barrage') && !r.includes('knockout') && !r.includes('round of');
+            });
+          }
+        }
+
+        const fixtureMap = {};
+        allClFixtures.forEach(m => {
+          fixtureMap[m.fixture.id] = m;
+        });
+
+        container.innerHTML = `
+          <div class="space-y-2">
+            ${pronos.map(p => {
+              const match = fixtureMap[p.fixture_id];
+              const homeName = match ? match.teams.home.name : "Équipe domicile";
+              const awayName = match ? match.teams.away.name : "Équipe extérieure";
+              const matchDate = match ? new Date(match.fixture.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : "Date inconnue";
+              const hGoals = match && match.goals.home !== null ? match.goals.home : '-';
+              const aGoals = match && match.goals.away !== null ? match.goals.away : '-';
+              const isFinished = match && match.fixture.status.short === 'FT';
+
+              let isExact = false;
+              if (isFinished && match.goals.home !== null && match.goals.away !== null) {
+                const [ph, pa] = p.score_parier.split('-').map(Number);
+                isExact = (ph === match.goals.home && pa === match.goals.away);
+              }
+
+              return `
+                <div class="bg-slate-950/75 border ${isExact ? 'border-amber-500/80 bg-amber-500/10' : 'border-slate-800'} rounded-2xl p-3 space-y-2 text-xs shadow-md">
+                  <div class="flex justify-between items-center text-[10px] text-slate-400 border-b border-slate-800/60 pb-1">
+                    <span class="font-semibold text-blue-400">${homeName} vs ${awayName}</span>
+                    <span>${matchDate}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2 truncate">
+                      <span class="font-black text-slate-100">${p.nom_ami}</span>
+                      ${isExact ? '<span class="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black text-[9px] uppercase">Vainqueur 🏆</span>' : ''}
+                    </div>
+                    <div class="flex items-center space-x-3 shrink-0">
+                      <span class="text-[10px] text-slate-400">Score réel: <strong class="text-amber-400">${hGoals}-${aGoals}</strong></span>
+                      <span class="bg-blue-950/90 text-blue-300 px-2 py-0.5 rounded font-mono font-bold border border-blue-800/50">Prono: ${p.score_parier}</span>
+                      <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center py-8">Erreur lors du chargement de l'historique global.</span>`;
+      }
+    }
+
+    function generateAutomaticMatchComment(opponentName, isHome, roundName) {
+      const lieu = isHome ? "au Parc des Princes" : "à l'extérieur";
+      const analyses = [
+        `"Choc tactique en perspective pour ce ${roundName}. Face à ${opponentName} ${lieu}, le PSG devra imposer sa maîtrise technique dans l'entrejeu tout en verrouillant ses transitions défensives."`,
+        `"Belle opposition de style en vue contre ${opponentName}. ${isHome ? "Le soutien du public parisien sera un atout clé" : "Il faudra faire preuve de solidité d'entrée"} pour espérer l'emporter."`,
+        `"Ce ${roundName} face à ${opponentName} s'annonce disputé. L'efficacité offensive des deux côtés fera basculer la rencontre dans les derniers mètres."`,
+        `"Un test européen majeur pour les Parisiens face à ${opponentName}. La bataille du milieu de terrain sera décisive pour prendre l'ascendant ${lieu}."`
+      ];
+      return analyses[opponentName.length % analyses.length];
+    }
+
+    async function fetchNextPSGMatch() {
+      try {
+        const response = await fetch(`https://v3.football.api-sports.io/fixtures?team=85&league=2&season=2026`, {
           headers: { "x-apisports-key": API_FOOTBALL_KEY }
         });
         const data = await response.json();
-        if (data.response) {
-          allClFixtures = data.response.filter(m => {
-            const r = (m.league.round || '').toLowerCase();
-            return !r.includes('qualifying') && !r.includes('preliminary') && !r.includes('play-off') && !r.includes('playoffs') && !r.includes('barrage') && !r.includes('knockout') && !r.includes('round of');
+        
+        if (data.response && data.response.length > 0) {
+          const clMatches = data.response.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+          
+          const now = new Date();
+          let targetIndex = clMatches.findIndex(m => new Date(m.fixture.date) >= now || m.fixture.status.short === 'LIVE' || m.fixture.status.short === 'HT');
+          if (targetIndex === -1) targetIndex = 0;
+          
+          const match = clMatches[targetIndex];
+          const matchDate = new Date(match.fixture.date);
+          const isHome = match.teams.home.id === 85;
+          const statusShort = match.fixture.status.short;
+          
+          currentFixtureId = match.fixture.id;
+          currentMatchFinished = (statusShort === 'FT');
+          realHomeGoals = match.goals.home !== null ? match.goals.home : 0;
+          realAwayGoals = match.goals.away !== null ? match.goals.away : 0;
+
+          if (currentMatchFinished) {
+            try {
+              const evRes = await fetch(`https://v3.football.api-sports.io/fixtures/events?fixture=${currentFixtureId}`, {
+                headers: { "x-apisports-key": API_FOOTBALL_KEY }
+              });
+              const evData = await evRes.json();
+              if (evData.response) {
+                const goals = evData.response.filter(e => e.type === 'Goal' && e.detail !== 'Missed Penalty');
+                if (goals.length > 0) {
+                  goals.sort((a, b) => a.time.elapsed - b.time.elapsed);
+                  realFirstGoalMinute = goals[0].time.elapsed;
+                } else {
+                  realFirstGoalMinute = 0;
+                }
+              }
+            } catch (err) {
+              realFirstGoalMinute = 0;
+            }
+          }
+
+          loadParieurs();
+
+          currentHomeTeamId = match.teams.home.id;
+          currentAwayTeamId = match.teams.away.id;
+          const awayTeamName = isHome ? match.teams.away.name : match.teams.home.name;
+          
+          const roundNumber = targetIndex + 1;
+          const roundName = `Journée ${roundNumber}`;
+          
+          document.getElementById('team-home-name').innerText = match.teams.home.name;
+          document.getElementById('team-home-logo').src = match.teams.home.logo;
+          
+          document.getElementById('team-away-name').innerText = awayTeamName;
+          document.getElementById('team-away-logo').src = isHome ? match.teams.away.logo : match.teams.home.logo;
+          document.getElementById('team-away-logo').className = "w-10 h-10 object-contain drop-shadow-lg";
+
+          const infoMatchTitle = document.getElementById('info-match-title');
+          if (infoMatchTitle) {
+            infoMatchTitle.innerText = `${match.teams.home.name} vs ${awayTeamName}`;
+          }
+
+          document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+          document.getElementById('info-round').innerText = roundName;
+          document.getElementById('info-referee').innerText = match.fixture.referee || 'Non désigné';
+          
+          const stadiumName = match.fixture.venue && match.fixture.venue.name ? match.fixture.venue.name : (isHome ? "Parc des Princes" : "Stade de l'adversaire");
+          document.getElementById('info-stadium').innerText = stadiumName;
+
+          document.getElementById('info-ai-comment').innerText = generateAutomaticMatchComment(awayTeamName, isHome, roundName);
+
+          startCountdown(matchDate);
+
+          document.getElementById('team-home-logo').onclick = () => openClubModal(currentHomeTeamId);
+          document.getElementById('team-away-container').onclick = () => openClubModal(currentAwayTeamId);
+
+          if (clMatches.length > targetIndex + 1) {
+            const nextMatch = clMatches[targetIndex + 1];
+            const nextDate = new Date(nextMatch.fixture.date);
+            const nextIsHome = nextMatch.teams.home.id === 85;
+            const nextOpponent = nextIsHome ? nextMatch.teams.away.name : nextMatch.teams.home.name;
+            const nextRoundNumber = targetIndex + 2;
+            const nextDateFormatted = nextDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+            
+            const nextBlock = document.getElementById('next-match-block');
+            const nextText = document.getElementById('next-match-text');
+            if (nextBlock && nextText) {
+              nextText.innerHTML = `<span class="text-blue-400">Journée ${nextRoundNumber}</span> : vs <span class="text-white">${nextOpponent}</span> (${nextDateFormatted})`;
+              nextBlock.classList.remove('hidden');
+            }
+          }
+        }
+      } catch (err) {
+        document.getElementById('countdown').innerText = "Calendrier en attente de l'UEFA";
+      }
+    }
+
+    async function openClubModal(teamId) {
+      const modal = document.getElementById('club-modal');
+      const content = document.getElementById('club-modal-content');
+      if (!modal || !content) return;
+
+      modal.classList.remove('hidden');
+      content.innerHTML = `<div class="text-center py-12"><div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div><p class="text-xs text-slate-400 mt-3">Chargement des détails du club...</p></div>`;
+
+      try {
+        const [resTeam, resStats, resSquad] = await Promise.all([
+          fetch(`https://v3.football.api-sports.io/teams?id=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } }),
+          fetch(`https://v3.football.api-sports.io/teams/statistics?league=2&season=2026&team=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } }),
+          fetch(`https://v3.football.api-sports.io/players/squads?team=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } })
+        ]);
+
+        const dataTeam = await resTeam.json();
+        const dataStats = await resStats.json();
+        const dataSquad = await resSquad.json();
+
+        if (dataTeam.response && dataTeam.response.length > 0) {
+          const item = dataTeam.response[0];
+          const team = item.team;
+          const venue = item.venue;
+          const stats = dataStats.response || null;
+          const squadList = dataSquad.response && dataSquad.response.length > 0 ? dataSquad.response[0].players : [];
+
+          content.innerHTML = `
+            <div class="flex items-center space-x-4 bg-slate-950/70 p-4 rounded-2xl border border-slate-800">
+              <img src="${team.logo}" alt="${team.name}" class="w-16 h-16 object-contain drop-shadow-lg">
+              <div>
+                <h2 class="text-base font-black text-white uppercase">${team.name}</h2>
+                <p class="text-xs text-slate-400">Pays : <span class="text-slate-200 font-semibold">${team.country}</span> | Fondé en : <span class="text-slate-200 font-semibold">${team.founded || 'N/C'}</span></p>
+              </div>
+            </div>
+
+            ${venue ? `
+            <div class="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-2">
+              <h3 class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Stade Officiel</h3>
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Nom du Stade</span>
+                <span class="font-semibold text-white">${venue.name}</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Ville</span>
+                <span class="font-semibold text-white">${venue.city}</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Capacité</span>
+                <span class="font-semibold text-amber-400">${venue.capacity ? venue.capacity.toLocaleString() + ' places' : 'N/C'}</span>
+              </div>
+              ${venue.image ? `<img src="${venue.image}" class="w-full h-32 object-cover rounded-xl mt-2 border border-slate-800" alt="Stade">` : ''}
+            </div>` : ''}
+
+            <div class="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-3">
+              <h3 class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Statistiques (Champions League)</h3>
+              <div class="grid grid-cols-2 gap-2 text-center">
+                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                  <span class="block text-[10px] text-slate-400">Forme récente</span>
+                  <span class="text-xs font-mono font-bold text-slate-200 tracking-wider">${stats && stats.form ? stats.form : 'En cours'}</span>
+                </div>
+                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                  <span class="block text-[10px] text-slate-400">Clean Sheets</span>
+                  <span class="text-xs font-bold text-emerald-400">${stats && stats.clean_sheet ? stats.clean_sheet.total : 0}</span>
+                </div>
+                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                  <span class="block text-[10px] text-slate-400">Buts marqués</span>
+                  <span class="text-xs font-bold text-amber-400">${stats && stats.goals ? stats.goals.for.total.total : 0}</span>
+                </div>
+                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                  <span class="block text-[10px] text-slate-400">Buts encaissés</span>
+                  <span class="text-xs font-bold text-rose-400">${stats && stats.goals && stats.goals.against ? stats.goals.against.total.total : 0}</span>
+                </div>
+              </div>
+            </div>
+
+            ${squadList.length > 0 ? `
+            <div class="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-3">
+              <h3 class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Effectif (${squadList.length} joueurs)</h3>
+              <div class="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+                ${squadList.map(p => `
+                  <div class="flex items-center justify-between bg-slate-900 p-2 rounded-xl border border-slate-800 text-xs">
+                    <div class="flex items-center space-x-2.5">
+                      <img src="${p.photo}" class="w-7 h-7 rounded-full object-cover bg-slate-800" alt="">
+                      <div>
+                        <span class="font-bold text-slate-200 block truncate max-w-[180px]">${p.name}</span>
+                        <span class="text-[10px] text-slate-400">${p.position} ${p.number ? '• #' + p.number : ''}</span>
+                      </div>
+                    </div>
+                    <span class="text-[11px] text-slate-400">${p.age ? p.age + ' ans' : ''}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>` : ''}
+          `;
+        } else {
+          content.innerHTML = `<p class="text-xs text-red-400 text-center py-6">Impossible de charger les données de ce club.</p>`;
+        }
+      } catch (err) {
+        content.innerHTML = `<p class="text-xs text-red-400 text-center py-6">Erreur lors de la récupération des informations.</p>`;
+      }
+    }
+
+    function closeClubModal() {
+      const modal = document.getElementById('club-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function openMatchHistoryModal(fixtureId, homeName, awayName, homeLogo, awayLogo, matchDateStr, hGoals, aGoals, statusShort) {
+      const modal = document.getElementById('history-modal');
+      const content = document.getElementById('history-modal-content');
+      if (!modal || !content) return;
+
+      modal.classList.remove('hidden');
+      content.innerHTML = `<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-7 w-7 border-4 border-blue-500 border-t-transparent"></div><p class="text-xs text-slate-400 mt-2">Chargement des paris de ce match...</p></div>`;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('pronostics')
+          .select('*')
+          .eq('fixture_id', fixtureId);
+
+        let firstGoalMin = null;
+        if (statusShort === 'FT') {
+          try {
+            const evRes = await fetch(`https://v3.football.api-sports.io/fixtures/events?fixture=${fixtureId}`, {
+              headers: { "x-apisports-key": API_FOOTBALL_KEY }
+            });
+            const evData = await evRes.json();
+            if (evData.response) {
+              const goals = evData.response.filter(e => e.type === 'Goal' && e.detail !== 'Missed Penalty');
+              if (goals.length > 0) {
+                goals.sort((a, b) => a.time.elapsed - b.time.elapsed);
+                firstGoalMin = goals[0].time.elapsed;
+              } else {
+                firstGoalMin = 0;
+              }
+            }
+          } catch (e) {
+            firstGoalMin = 0;
+          }
+        }
+
+        const count = data ? data.length : 0;
+        let processedData = [];
+        if (data && count > 0) {
+          processedData = data.map(p => {
+            const [ph, pa] = p.score_parier.split('-').map(Number);
+            const isExactScore = (statusShort === 'FT' && ph === hGoals && pa === aGoals);
+            const minuteDiff = firstGoalMin !== null ? Math.abs(p.minute_1er_but - firstGoalMin) : 0;
+            return { ...p, isExactScore, minuteDiff };
           });
+
+          processedData.sort((a, b) => {
+            if (a.isExactScore && !b.isExactScore) return -1;
+            if (!a.isExactScore && b.isExactScore) return 1;
+            return a.minuteDiff - b.minuteDiff;
+          });
+        }
+
+        const aUnVraiGagnant = statusShort === 'FT' && count > 0 && processedData[0].isExactScore;
+
+        content.innerHTML = `
+          <div class="text-center space-y-2 border-b border-slate-800 pb-4">
+            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest block">${matchDateStr}</span>
+            <div class="flex items-center justify-between px-2">
+              <div class="flex flex-col items-center w-1/3 truncate">
+                <img src="${homeLogo}" class="w-8 h-8 object-contain mb-1" alt="">
+                <span class="text-xs font-bold text-slate-200 truncate w-full">${homeName}</span>
+              </div>
+              <div class="text-sm font-black text-amber-400 w-1/3 text-center">
+                ${hGoals !== null ? hGoals + ' - ' + aGoals : 'VS'}
+              </div>
+              <div class="flex flex-col items-center w-1/3 truncate">
+                <img src="${awayLogo}" class="w-8 h-8 object-contain mb-1" alt="">
+                <span class="text-xs font-bold text-slate-200 truncate w-full">${awayName}</span>
+              </div>
+            </div>
+            <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-semibold inline-block">
+              ${statusShort === 'FT' ? 'Match Terminé' : statusShort === 'NS' ? 'À venir' : statusShort}
+            </span>
+          </div>
+
+          <div class="space-y-3 pt-1">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Paris enregistrés (${count})</h3>
+            
+            ${count === 0 ? `
+              <p class="text-center text-xs text-slate-400 italic py-6">Aucun pari enregistré pour ce match.</p>
+            ` : `
+              <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                ${processedData.map((p, index) => {
+                  const isWinner = aUnVraiGagnant && index === 0;
+                  return `
+                    <div class="flex items-center justify-between p-2.5 rounded-xl border text-xs ${isWinner ? 'bg-amber-500/20 border-amber-500/80 shadow-lg' : 'bg-slate-950/70 border-slate-800'}">
+                      <div class="flex items-center space-x-2 truncate">
+                        <span class="font-bold text-slate-200 truncate">${p.nom_ami}</span>
+                        ${isWinner ? '<span class="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black text-[9px] uppercase">Gagnant</span>' : ''}
+                      </div>
+                      <div class="flex items-center space-x-3 shrink-0">
+                        <span class="bg-blue-950/80 text-blue-300 px-2 py-0.5 rounded font-mono font-bold border border-blue-800/50">${p.score_parier}</span>
+                        <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      } catch (err) {
+        content.innerHTML = `<p class="text-xs text-red-400 text-center py-6">Erreur lors du chargement des paris.</p>`;
+      }
+    }
+
+    function closeHistoryModal() {
+      const modal = document.getElementById('history-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function startCountdown(targetDate) {
+      setInterval(() => {
+        const now = new Date();
+        const diff = targetDate - now;
+        const el = document.getElementById('countdown');
+        if (!el) return;
+
+        if (diff <= 0) {
+          el.innerText = "Match en cours ou terminé !";
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+
+        el.innerText = `${days}j ${hours}h ${mins}m ${secs}s`;
+      }, 1000);
+    }
+
+    async function initMatchdaysNav() {
+      const nav = document.getElementById('matchdays-nav');
+      if (!nav) return;
+
+      if (allClFixtures.length === 0) {
+        try {
+          const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=2&season=2026`, {
+            headers: { "x-apisports-key": API_FOOTBALL_KEY }
+          });
+          const data = await response.json();
+          if (data.response) {
+            allClFixtures = data.response.filter(m => {
+              const r = (m.league.round || '').toLowerCase();
+              return !r.includes('qualifying') && 
+                     !r.includes('preliminary') && 
+                     !r.includes('play-off') && 
+                     !r.includes('playoffs') && 
+                     !r.includes('barrage') && 
+                     !r.includes('knockout') &&
+                     !r.includes('round of');
+            });
+            
+            allClFixtures.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+
+            matchdaysChunks = [];
+            const chunkSize = 18;
+            for (let i = 0; i < allClFixtures.length; i += chunkSize) {
+              matchdaysChunks.push(allClFixtures.slice(i, i + chunkSize));
+            }
+          }
+        } catch (err) {
+          console.error("Erreur chargement fixtures", err);
+        }
+      }
+
+      if (nav.children.length === 0) {
+        nav.innerHTML = '';
+        for (let i = 1; i <= 8; i++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.id = `btn-j-${i}`;
+          btn.className = `px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-slate-800 text-slate-300 border border-slate-700 shrink-0 cursor-pointer`;
+          btn.innerText = `J${i}`;
+          btn.onclick = () => fetchMatchday(i);
+          nav.appendChild(btn);
+        }
+      }
+      fetchMatchday(1);
+    }
+
+    async function fetchMatchday(dayNum) {
+      const container = document.getElementById('ai-resultats-container');
+      if (!container) return;
+
+      container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Chargement Journée ${dayNum}...</span>`;
+
+      for (let i = 1; i <= 8; i++) {
+        const b = document.getElementById(`btn-j-${i}`);
+        if (b) {
+          if (i === dayNum) {
+            b.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-blue-600 text-white border border-blue-500 shrink-0 cursor-pointer shadow-lg";
+          } else {
+            b.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-slate-800 text-slate-300 border border-slate-700 shrink-0 cursor-pointer";
+          }
+        }
+      }
+
+      const matchesToShow = matchdaysChunks[dayNum - 1] || [];
+
+      if (matchesToShow && matchesToShow.length > 0) {
+        container.innerHTML = `
+          <div class="text-center pb-1">
+            <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Journée ${dayNum} sur 8 (Cliquez sur un match)</span>
+          </div>
+          <div class="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+            ${matchesToShow.map(m => {
+              const matchDate = new Date(m.fixture.date);
+              const dateFormatted = matchDate.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+              const homeScore = m.goals.home !== null ? m.goals.home : '-';
+              const awayScore = m.goals.away !== null ? m.goals.away : '-';
+              const statusShort = m.fixture.status.short;
+              const statusText = statusShort === 'FT' ? 'Terminé' : statusShort === 'NS' ? 'À venir' : statusShort;
+
+              return `
+                <div onclick="openMatchHistoryModal(${m.fixture.id}, '${m.teams.home.name.replace(/'/g, "\\'")}', '${m.teams.away.name.replace(/'/g, "\\'")}', '${m.teams.home.logo}', '${m.teams.away.logo}', '${dateFormatted}', ${m.goals.home}, ${m.goals.away}, '${statusShort}')" 
+                     class="bg-slate-950/75 border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 flex flex-col space-y-1.5 text-xs shadow-md transition cursor-pointer transform hover:scale-[1.01]">
+                  <div class="flex justify-between items-center text-[10px] text-slate-400 border-b border-slate-800/60 pb-1">
+                    <span>${dateFormatted}</span>
+                    <span class="font-semibold text-blue-400 flex items-center space-x-1"><span>🔍 Voir les paris</span> • <span>${statusText}</span></span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2 w-[42%] truncate">
+                      <img src="${m.teams.home.logo}" class="w-5 h-5 object-contain shrink-0" alt="">
+                      <span class="truncate font-bold text-slate-200">${m.teams.home.name}</span>
+                    </div>
+                    <div class="w-[16%] text-center font-black text-amber-400 text-sm">
+                      ${homeScore} : ${awayScore}
+                    </div>
+                    <div class="flex items-center justify-end space-x-2 w-[42%] truncate">
+                      <span class="truncate font-bold text-slate-200 text-right">${m.teams.away.name}</span>
+                      <img src="${m.teams.away.logo}" class="w-5 h-5 object-contain shrink-0" alt="">
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } else {
+        container.innerHTML = `<div class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 text-center text-[11px] text-slate-400">Calendrier officiel de la Journée ${dayNum} en attente de l'UEFA.</div>`;
+      }
+    }
+
+    async function fetchStandings() {
+      const container = document.getElementById('standings-container');
+      if (!container || container.children.length > 1) return;
+
+      try {
+        const response = await fetch(`https://v3.football.api-sports.io/standings?league=2&season=2026`, {
+          headers: { "x-apisports-key": API_FOOTBALL_KEY }
+        });
+        const data = await response.json();
+
+        if (data.response && data.response.length > 0) {
+          const standings = data.response[0].league.standings[0];
+
+          container.innerHTML = `
+            <div class="grid grid-cols-12 text-[10px] font-bold text-slate-400 uppercase pb-1 border-b border-slate-800 px-2">
+              <span class="col-span-1">#</span>
+              <span class="col-span-6">Équipe</span>
+              <span class="col-span-2 text-center">J</span>
+              <span class="col-span-3 text-right">Pts</span>
+            </div>
+          ` + standings.map(team => `
+            <div class="grid grid-cols-12 items-center text-xs p-2 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:bg-slate-800/50 transition">
+              <span class="col-span-1 font-bold ${team.rank <= 8 ? 'text-emerald-400' : team.rank <= 24 ? 'text-blue-400' : 'text-slate-400'}">${team.rank}</span>
+              <div class="col-span-6 flex items-center space-x-2 truncate">
+                <img src="${team.team.logo}" alt="${team.team.name}" class="w-4 h-4 object-contain">
+                <span class="truncate font-medium text-slate-200">${team.team.name}</span>
+              </div>
+              <span class="col-span-2 text-center text-slate-400">${team.all.played}</span>
+              <span class="col-span-3 text-right font-black text-amber-400">${team.points}</span>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = `<div class="text-center text-[11px] text-slate-400">Classement non disponible pour le moment.</div>`;
+        }
+      } catch (err) {
+        container.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center">Erreur de chargement du classement.</span>`;
+      }
+    }
+
+    async function loadParieurs() {
+      try {
+        if (!currentFixtureId) return;
+
+        const { data, error } = await supabaseClient
+          .from('pronostics')
+          .select('*')
+          .eq('fixture_id', currentFixtureId);
+
+        const parieursList = document.getElementById('parieurs-list');
+        const cagnotteEl = document.getElementById('cagnotte');
+        const winnerCommentBlock = document.getElementById('winner-ai-comment-container');
+        const winnerCommentText = document.getElementById('winner-ai-comment-text');
+
+        if (error || !data || data.length === 0) {
+          // Sécurité automatique : si aucun pari, on réinitialise proprement le localStorage si la base est vide
+          const totalCheck = await supabaseClient.from('pronostics').select('*', { count: 'exact', head: true });
+          if (!totalCheck.count || totalCheck.count === 0) {
+            localStorage.removeItem('cagnotte_precedente');
+          }
+
+          if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun pari pour le moment</span>`;
+          if (cagnotteEl) {
+            const activeCagnotte = parseInt(localStorage.getItem('cagnotte_precedente') || '0');
+            cagnotteEl.innerText = `${activeCagnotte} €`;
+          }
+          if (winnerCommentBlock) winnerCommentBlock.classList.add('hidden');
+          return;
+        }
+
+        const count = data.length;
+
+        let cagnottePrecedente = parseInt(localStorage.getItem('cagnotte_precedente') || '0');
+        let montantTotalJeu = cagnottePrecedente + (count * 5);
+
+        let processedData = data.map(p => {
+          const [ph, pa] = p.score_parier.split('-').map(Number);
+          const isExactScore = (ph === realHomeGoals && pa === realAwayGoals);
+          const minuteDiff = realFirstGoalMinute !== null ? Math.abs(p.minute_1er_but - realFirstGoalMinute) : 0;
+          return { ...p, isExactScore, minuteDiff };
+        });
+
+        processedData.sort((a, b) => {
+          if (a.isExactScore && !b.isExactScore) return -1;
+          if (!a.isExactScore && b.isExactScore) return 1;
+          return a.minuteDiff - b.minuteDiff;
+        });
+
+        const aUnVraiGagnant = currentMatchFinished && count > 0 && processedData[0].isExactScore;
+
+        if (currentMatchFinished) {
+          if (count === 0 || !aUnVraiGagnant) {
+            localStorage.setItem('cagnotte_precedente', montantTotalJeu);
+            if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} € (Reporté)`;
+            
+            if (winnerCommentBlock && winnerCommentText) {
+              winnerCommentText.innerText = "PAS DE GAGNANT DE SCORE EXACT ! La cagnotte reste identique et se reporte pour le prochain match.";
+              winnerCommentBlock.classList.remove('hidden');
+            }
+          } else {
+            localStorage.setItem('cagnotte_precedente', 0);
+            if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} € (Remporté)`;
+
+            if (winnerCommentBlock && winnerCommentText) {
+              winnerCommentText.innerText = `"${processedData[0].nom_ami} a trouvé le score exact (${processedData[0].score_parier}) ! Il braque la caisse de ${montantTotalJeu} €."`;
+              winnerCommentBlock.classList.remove('hidden');
+            }
+          }
+        } else {
+          if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} €`;
+          if (winnerCommentBlock) winnerCommentBlock.classList.add('hidden');
+        }
+
+        if (parieursList) {
+          parieursList.innerHTML = processedData.map((p, index) => {
+            const isWinner = aUnVraiGagnant && index === 0;
+            return `
+              <div class="flex items-center justify-between p-2.5 rounded-xl border text-xs w-full shadow-inner ${isWinner ? 'bg-amber-500/20 border-amber-500/80 shadow-amber-500/20' : 'bg-slate-900/90 border-slate-800'}">
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-slate-200">${p.nom_ami || 'Parieur'}</span>
+                  ${isWinner ? `<span class="bg-amber-500 text-slate-950 px-2 py-0.5 rounded-md font-black text-[10px] tracking-wider uppercase animate-pulse">🏆 Gagnant</span>` : ''}
+                </div>
+                <div class="flex items-center space-x-3">
+                  ${currentMatchFinished ? `
+                    <span class="bg-blue-950 text-blue-400 px-2 py-1 rounded-lg font-mono font-bold border border-blue-800/60">Prono : ${p.score_parier}</span>
+                    <span class="text-slate-400 text-[10px]">Min : <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
+                  ` : `
+                    <span class="bg-slate-800 text-slate-400 px-2.5 py-1 rounded-lg font-medium border border-slate-700 text-[10px]">🔒 Prono masqué</span>
+                  `}
+                </div>
+              </div>
+            `;
+          }).join('');
         }
       } catch (err) {}
     }
 
-    matchdaysChunks = [];
-    for (let i = 0; i < 8; i++) {
-      matchdaysChunks.push({
-        name: `Journée ${i + 1}`,
-        fixtures: allClFixtures.slice(i * 9, (i + 1) * 9)
+    const pronoForm = document.getElementById('prono-form');
+    if (pronoForm) {
+      pronoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const status = document.getElementById('status');
+        if (!currentFixtureId) {
+          if (status) {
+            status.innerText = "Erreur : Match non chargé.";
+            status.className = "text-center text-[11px] font-semibold text-red-400";
+          }
+          return;
+        }
+
+        if (status) {
+          status.innerText = "Validation...";
+          status.className = "text-center text-[11px] font-semibold text-blue-400";
+        }
+
+        const nom = document.getElementById('nom').value.trim();
+        const score1 = document.getElementById('score1').value;
+        const score2 = document.getElementById('score2').value;
+        const minute = parseInt(document.getElementById('minute').value);
+        const scoreParier = `${score1}-${score2}`;
+
+        try {
+          const { error } = await supabaseClient.from('pronostics').insert([
+            { 
+              nom_ami: nom, 
+              score_parier: scoreParier, 
+              minute_1er_but: minute,
+              fixture_id: currentFixtureId 
+            }
+          ]);
+
+          if (error) {
+            if (status) {
+              status.innerText = "Erreur : " + error.message;
+              status.className = "text-center text-[11px] font-semibold text-red-400";
+            }
+          } else {
+            if (status) {
+              status.innerText = "Prono enregistré avec succès ! 🎉";
+              status.className = "text-center text-[11px] font-semibold text-green-400";
+            }
+            pronoForm.reset();
+            loadParieurs();
+          }
+        } catch (err) {
+          if (status) {
+            status.innerText = "Erreur de connexion.";
+            status.className = "text-center text-[11px] font-semibold text-red-400";
+          }
+        }
       });
     }
 
-    navContainer.innerHTML = matchdaysChunks.map((chunk, idx) => `
-      <button onclick="selectMatchday(${idx})" id="btn-md-${idx}" class="px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition bg-slate-900 text-slate-300 border border-slate-800 shrink-0 cursor-pointer">
-        J${idx + 1}
-      </button>
-    `).join('');
-
-    if (matchdaysChunks.length > 0) {
-      selectMatchday(0);
-    }
-  }
-
-  window.selectMatchday = function(idx) {
-    const chunk = matchdaysChunks[idx];
-    const container = document.getElementById('ai-resultats-container');
-    if (!container || !chunk) return;
-
-    for (let i = 0; i < matchdaysChunks.length; i++) {
-      const btn = document.getElementById(`btn-md-${i}`);
-      if (btn) {
-        btn.className = (i === idx) 
-          ? "px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-md shrink-0 cursor-pointer"
-          : "px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition bg-slate-900 text-slate-300 border border-slate-800 shrink-0 cursor-pointer";
-      }
-    }
-
-    if (chunk.fixtures.length === 0) {
-      container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-6">Aucun match programmé pour cette journée.</span>`;
-      return;
-    }
-
-    container.innerHTML = `
-      <div class="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
-        ${chunk.fixtures.map(m => {
-          const matchDate = new Date(m.fixture.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-          const hGoals = m.goals.home !== null ? m.goals.home : '-';
-          const aGoals = m.goals.away !== null ? m.goals.away : '-';
-          const isFinished = m.fixture.status.short === 'FT';
-          
-          return `
-            <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3 flex items-center justify-between text-xs shadow-md">
-              <div class="flex items-center space-x-2 w-5/12 truncate">
-                <img src="${m.teams.home.logo}" class="w-5 h-5 object-contain shrink-0">
-                <span class="truncate font-semibold text-slate-200">${m.teams.home.name}</span>
-              </div>
-              <div class="flex flex-col items-center justify-center px-2 shrink-0">
-                <span class="font-black text-amber-400 text-sm">${hGoals} - ${aGoals}</span>
-                <span class="text-[9px] text-slate-400">${isFinished ? 'Terminé' : matchDate}</span>
-              </div>
-              <div class="flex items-center justify-end space-x-2 w-5/12 truncate">
-                <span class="truncate font-semibold text-slate-200 text-right">${m.teams.away.name}</span>
-                <img src="${m.teams.away.logo}" class="w-5 h-5 object-contain shrink-0">
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    `;
-  };
-
-  async function fetchStandings() {
-    const container = document.getElementById('standings-container');
-    if (!container) return;
-
-    container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Chargement du classement...</span>`;
-
-    try {
-      const response = await fetch(`https://v3.football.api-sports.io/standings?league=2&season=2026`, {
-        headers: { "x-apisports-key": API_FOOTBALL_KEY }
-      });
-      const data = await response.json();
-
-      if (data.response && data.response.length > 0) {
-        const leagueData = data.response[0].league;
-        const standings = leagueData.standings[0] || [];
-
-        container.innerHTML = `
-          <div class="space-y-1">
-            ${standings.map(s => `
-              <div class="flex items-center justify-between bg-slate-950/70 border ${s.team.id === 85 ? 'border-blue-500 bg-blue-500/10' : 'border-slate-800'} rounded-xl px-3 py-2 text-xs">
-                <div class="flex items-center space-x-3 truncate">
-                  <span class="font-mono font-bold text-slate-400 w-5 text-right">${s.rank}</span>
-                  <img src="${s.team.logo}" class="w-5 h-5 object-contain">
-                  <span class="font-semibold text-white truncate">${s.team.name}</span>
-                </div>
-                <div class="flex items-center space-x-4 shrink-0 font-mono text-[11px]">
-                  <span class="text-slate-400">J: <strong class="text-slate-200">${s.all.played}</strong></span>
-                  <span class="text-slate-400">Diff: <strong class="${s.goalsDiff > 0 ? 'text-green-400' : s.goalsDiff < 0 ? 'text-red-400' : 'text-slate-200'}">${s.goalsDiff > 0 ? '+' + s.goalsDiff : s.goalsDiff}</strong></span>
-                  <span class="bg-blue-950 text-blue-300 px-2 py-0.5 rounded font-bold">${s.points} pts</span>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      } else {
-        container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Classement non disponible pour le moment.</span>`;
-      }
-    } catch (err) {
-      container.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center py-8">Erreur lors du chargement du classement.</span>`;
-    }
-  }
-
-  fetchNextPSGMatch();
+    fetchNextPSGMatch();
+  </script>
+</body>
+</html>
