@@ -190,8 +190,7 @@
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let allClFixtures = [];
-    let sortedRounds = [];
-    let roundSet = {};
+    let matchdaysChunks = []; // Tableaux de 8 blocs (J1 à J8)
 
     function switchTab(tab) {
       const tabPronos = document.getElementById('tab-pronos');
@@ -304,7 +303,7 @@
       }, 1000);
     }
 
-    // Initialisation et chargement des 8 journées de la Phase de Ligue triées chronologiquement
+    // Répartition stricte et chronologique des 144 matchs en 8 journées exactes (18 matchs par journée)
     async function initMatchdaysNav() {
       const nav = document.getElementById('matchdays-nav');
       if (!nav) return;
@@ -328,21 +327,15 @@
                      !r.includes('round of');
             });
             
-            // Tri chronologique global de tous les matchs
+            // Tri chronologique global de tous les matchs par date
             allClFixtures.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
 
-            // Regroupement par nom de tour d'origine
-            roundSet = {};
-            allClFixtures.forEach(m => {
-              const r = m.league.round || 'Phase de ligue';
-              if (!roundSet[r]) roundSet[r] = [];
-              roundSet[r].push(m);
-            });
-
-            // Tri exact des rounds par la date de leur tout premier match
-            sortedRounds = Object.keys(roundSet).sort((a, b) => {
-              return new Date(roundSet[a][0].fixture.date) - new Date(roundSet[b][0].fixture.date);
-            });
+            // Découpage automatique en 8 blocs parfaits de 18 matchs (Phase de Ligue C1)
+            matchdaysChunks = [];
+            const chunkSize = 18;
+            for (let i = 0; i < allClFixtures.length; i += chunkSize) {
+              matchdaysChunks.push(allClFixtures.slice(i, i + chunkSize));
+            }
           }
         } catch (err) {
           console.error("Erreur chargement fixtures", err);
@@ -382,9 +375,8 @@
         }
       }
 
-      // Si les données sont prêtes, on récupère le round correspondant dans l'ordre chronologique exact (index dayNum - 1)
-      const roundKey = sortedRounds[dayNum - 1];
-      let matchesToShow = roundKey ? roundSet[roundKey] : [];
+      // Récupération du bloc correspondant (index dayNum - 1)
+      const matchesToShow = matchdaysChunks[dayNum - 1] || [];
 
       if (matchesToShow && matchesToShow.length > 0) {
         container.innerHTML = `
