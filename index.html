@@ -125,23 +125,31 @@
       let match = null;
       const headers = { "x-apisports-key": API_FOOTBALL_KEY };
 
-      try {
-        let res = await fetch("https://v3.football.api-sports.io/fixtures?team=85&season=2026", { headers });
-        let data = await res.json();
+      const endpoints = [
+        "https://v3.football.api-sports.io/fixtures?team=85&next=1",
+        "https://v3.football.api-sports.io/fixtures?team=85&season=2026",
+        "https://v3.football.api-sports.io/fixtures?team=85&season=2025"
+      ];
 
-        if (data.response && data.response.length > 0) {
-          const now = new Date();
-          const futureMatches = data.response.filter(m => new Date(m.fixture.date) > now);
-
-          if (futureMatches.length > 0) {
-            futureMatches.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
-            match = futureMatches[0];
-          } else {
-            match = data.response[data.response.length - 1];
+      for (let url of endpoints) {
+        try {
+          let res = await fetch(url, { headers });
+          let data = await res.json();
+          if (data.response && data.response.length > 0) {
+            const now = new Date();
+            const futureMatches = data.response.filter(m => new Date(m.fixture.date) > now);
+            if (futureMatches.length > 0) {
+              futureMatches.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+              match = futureMatches[0];
+              break;
+            } else if (url.includes("next=1")) {
+              match = data.response[0];
+              break;
+            }
           }
+        } catch (e) {
+          console.warn("Échec requête :", url);
         }
-      } catch (e) {
-        console.warn("Erreur lors de la récupération du match :", e);
       }
 
       if (match) {
