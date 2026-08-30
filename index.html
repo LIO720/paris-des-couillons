@@ -9,7 +9,6 @@
 </head>
 <body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 relative overflow-x-hidden">
 
-  <!-- Arrière-plan Stade de Football -->
   <div class="fixed inset-0 z-0 bg-slate-900 bg-cover bg-center bg-no-repeat scale-105" 
        style="background-color: #064e3b; background-image: linear-gradient(to bottom, rgba(3, 7, 18, 0.8), rgba(2, 44, 34, 0.85)), url('https://images.unsplash.com/photo-1518604668838-89a1f24d7b6f?q=80&w=2070&auto=format&fit=crop');">
     <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-[1px]"></div>
@@ -17,7 +16,6 @@
 
   <div class="w-full max-w-md space-y-6 relative z-10">
     
-    <!-- En-tête : Bannière Champions League -->
     <div class="text-center space-y-3">
       <div class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-900/90 via-blue-800 to-blue-900/90 border border-blue-500/50 shadow-2xl backdrop-blur-md flex items-center justify-center space-x-3">
         <img src="https://media.api-sports.io/football/leagues/2.png" alt="UEFA Champions League" class="w-10 h-10 object-contain filter brightness-0 invert drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]">
@@ -29,7 +27,6 @@
         <p class="text-[11px] font-medium text-slate-400 tracking-wider">développé par yosnick</p>
       </div>
 
-      <!-- Barre de Navigation / 4 Onglets -->
       <div class="flex justify-center space-x-1 pt-2 overflow-x-auto pb-1">
         <button type="button" onclick="switchTab('pronos')" id="btn-tab-pronos" class="px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer">Vos pronos</button>
         <button type="button" onclick="switchTab('infos')" id="btn-tab-infos" class="px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Info du match</button>
@@ -37,14 +34,12 @@
         <button type="button" onclick="switchTab('classement')" id="btn-tab-classement" class="px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Classement intégral</button>
       </div>
       
-      <!-- Cagnotte Globale -->
       <div class="inline-block mt-1 px-6 py-2 rounded-xl bg-slate-900/90 border border-slate-700/80 shadow-lg backdrop-blur-md">
         <span class="block text-[10px] text-slate-400 uppercase tracking-widest font-bold">Cagnotte en jeu (5€ / pari)</span>
         <span id="cagnotte" class="text-xl font-black text-amber-400">0 €</span>
       </div>
     </div>
 
-    <!-- ONGLET 1 : PRONOSTICS -->
     <main id="tab-pronos" class="bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
       
       <div class="text-center space-y-2">
@@ -54,14 +49,12 @@
           Chargement du décompte...
         </div>
 
-        <!-- Bloc discret : Prochain match d'après -->
         <div id="next-match-block" class="hidden bg-slate-950/60 border border-slate-800/80 rounded-2xl p-2.5 text-center space-y-0.5 max-w-xs mx-auto">
           <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Match suivant</span>
           <div id="next-match-text" class="text-xs font-semibold text-slate-200"></div>
         </div>
       </div>
 
-      <!-- Équipes (Logos cliquables) -->
       <div class="flex items-center justify-between px-4 py-3 bg-slate-950/70 rounded-2xl border border-slate-800 shadow-inner">
         <div class="flex flex-col items-center space-y-2 w-1/3 text-center">
           <img id="team-home-logo" src="https://media.api-sports.io/football/teams/85.png" alt="PSG" class="w-12 h-12 object-contain filter drop-shadow-lg transition transform hover:scale-110 cursor-pointer" title="Voir les infos du PSG">
@@ -78,7 +71,6 @@
         </div>
       </div>
 
-      <!-- Formulaire Pronostic -->
       <form id="prono-form" class="space-y-4">
         <div class="text-center">
           <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-2">Votre Pronostic</label>
@@ -104,14 +96,12 @@
 
       <div id="status" class="text-center text-[11px] font-semibold"></div>
 
-      <!-- Parieurs du match -->
       <div class="border-t border-slate-800 pt-4 space-y-2.5">
         <h2 class="text-slate-300 text-[11px] uppercase font-bold tracking-wider text-center">Liste des Parieurs</h2>
         <div id="parieurs-list" class="space-y-1.5">
           <span class="text-slate-400 italic text-[11px] block text-center">Chargement...</span>
         </div>
 
-        <!-- BLOC COMMENTAIRE IA / RÉSULTAT DU MATCH -->
         <div id="winner-ai-comment-container" class="hidden bg-slate-950/80 border border-amber-500/50 rounded-2xl p-4 space-y-2 shadow-xl mt-3">
           <div class="flex items-center space-x-2">
             <span class="text-base">🏆🤖</span>
@@ -123,7 +113,6 @@
         </div>
       </div>
 
-      <!-- Rappel des Règles & Process -->
       <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2 text-[11px] text-slate-300">
         <div class="flex items-center space-x-2 text-blue-400 font-bold uppercase tracking-wider">
           <span>ℹ️</span>
@@ -137,7 +126,6 @@
       </div>
     </main>
 
-    <!-- ONGLET 2 : INFOS MATCH -->
     <main id="tab-infos" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-5">
       <div class="text-center space-y-1">
         <h2 id="info-match-title" class="text-xs font-bold tracking-widest text-blue-400 uppercase">PSG vs En attente UEFA</h2>
@@ -171,7 +159,6 @@
         </div>
       </div>
 
-      <!-- Bloc Commentaire IA du Match -->
       <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2">
         <div class="flex items-center space-x-2">
           <span class="text-base">🤖</span>
@@ -183,24 +170,20 @@
       </div>
     </main>
 
-    <!-- ONGLET 3 : RÉSULTATS & CALENDRIER 8 JOURNÉES -->
     <main id="tab-resultats" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
       <div class="text-center space-y-2">
         <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Calendrier des 8 Journées</h2>
         <p class="text-[11px] text-slate-300">Navigation de la Journée 1 à 8</p>
       </div>
 
-      <!-- Boutons des 8 Journées -->
       <div class="flex overflow-x-auto gap-1.5 pb-2 scrollbar-none" id="matchdays-nav">
-        <!-- Généré dynamiquement en JS -->
-      </div>
+        </div>
 
       <div id="ai-resultats-container" class="space-y-3">
         <span class="text-slate-400 italic text-[11px] block text-center">Sélectionnez une journée ci-dessus.</span>
       </div>
     </main>
 
-    <!-- ONGLET 4 : CLASSEMENT GÉNÉRAL C1 -->
     <main id="tab-classement" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-4">
       <div class="text-center space-y-1">
         <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Classement Phase de Ligue</h2>
@@ -214,7 +197,6 @@
 
   </div>
 
-  <!-- MODAL FICHE CLUB COMPLÈTE -->
   <div id="club-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md hidden">
     <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 space-y-5 relative shadow-2xl">
       <button onclick="closeClubModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-base bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
@@ -687,23 +669,31 @@
 
         const count = data.length;
 
-        // Gestion de la cagnotte et de l'affichage selon s'il y a un gagnant ou pas
+        // --- GESTION DE LA CAGNOTTE AVEC REPORT (LOCALSTORAGE) ---
+        let cagnottePrecedente = parseInt(localStorage.getItem('cagnotte_precedente') || '0');
+        let montantTotalJeu = cagnottePrecedente + (count * 5);
+
         if (currentMatchFinished) {
           if (count === 0) {
-            // S'il n'y a pas de gagnant (pas de parieurs)
-            if (cagnotteEl) cagnotteEl.innerText = `0 € (Reporté)`;
+            // Pas de parieur -> report du montant total cumulé
+            localStorage.setItem('cagnotte_precedente', montantTotalJeu);
+            if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} € (Reporté)`;
             if (winnerCommentBlock && winnerCommentText) {
               winnerCommentText.innerText = "PAS DE GAGNANT POUR LES COUILLONS";
               winnerCommentBlock.classList.remove('hidden');
             }
+            if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun pari pour le moment</span>`;
+            return;
           } else {
-            // S'il y a un gagnant, la cagnotte passe à 0 pour le match suivant
-            if (cagnotteEl) cagnotteEl.innerText = `0 € (Remporté)`;
+            // S'il y a des parieurs, on valide un gagnant, donc la cagnotte globale est remportée
+            localStorage.setItem('cagnotte_precedente', 0);
+            if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} € (Remporté)`;
           }
         } else {
-          // Match pas encore fini
-          if (cagnotteEl) cagnotteEl.innerText = `${count * 5} €`;
+          // Match en cours / à venir
+          if (cagnotteEl) cagnotteEl.innerText = `${montantTotalJeu} €`;
         }
+        // ---------------------------------------------------------
 
         if (count === 0) {
           if (parieursList) parieursList.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center">Aucun pari pour le moment</span>`;
