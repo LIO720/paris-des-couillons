@@ -4,111 +4,162 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Le Paris des Couillons</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Client CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen pb-10">
+<body class="bg-[#090D16] text-slate-100 min-h-screen py-8 px-4 font-sans">
 
-  <div class="max-w-md mx-auto p-4 space-y-4">
+  <div class="max-w-md mx-auto space-y-4">
     
-    <!-- En-tête / Cagnotte -->
-    <header class="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-center space-y-2 shadow-xl">
-      <h1 class="text-xl font-black text-amber-400 tracking-wide uppercase">Le Paris des Couillons</h1>
-      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 inline-block w-full">
-        <span class="text-xs text-slate-400 uppercase font-bold tracking-wider block">Cagnotte actuelle</span>
-        <span id="cagnotte" class="text-3xl font-black text-emerald-400">0 €</span>
+    <!-- TITRE PRINCIPAL -->
+    <h1 class="text-center font-extrabold text-2xl tracking-wider text-amber-400 uppercase">
+      LE PARIS DES COUILLONS
+    </h1>
+
+    <!-- BLOC CAGNOTTE ACTUELLE -->
+    <div class="bg-[#101726] border border-slate-800/80 rounded-2xl p-4 text-center shadow-lg">
+      <div class="text-slate-400 text-[11px] font-bold tracking-widest uppercase mb-1">
+        CAGNOTTE ACTUELLE
       </div>
-    </header>
+      <div id="cagnotte" class="text-emerald-400 font-black text-3xl">
+        0 €
+      </div>
+    </div>
 
-    <!-- Navigation Onglets -->
-    <nav class="flex gap-2 justify-center">
-      <button id="btn-tab-pronos" onclick="switchTab('pronos')" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer">Pronos</button>
-      <button id="btn-tab-infos" onclick="switchTab('infos')" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Infos Match</button>
-      <button id="btn-tab-resultats" onclick="switchTab('resultats')" class="px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Résultats J</button>
-    </nav>
+    <!-- BOUTONS D'ONGLETS -->
+    <div class="flex justify-center gap-2">
+      <button id="btn-tab-pronos" onclick="switchTab('pronos')" class="px-4 py-2 rounded-xl text-xs font-bold uppercase transition bg-blue-600 text-white border border-blue-500 cursor-pointer">
+        PRONOS
+      </button>
+      <button id="btn-tab-infos" onclick="switchTab('infos')" class="px-4 py-2 rounded-xl text-xs font-bold uppercase transition bg-[#101726] text-slate-300 border border-slate-800 hover:bg-slate-800 cursor-pointer">
+        INFOS MATCH
+      </button>
+      <button id="btn-tab-resultats" onclick="switchTab('resultats')" class="px-4 py-2 rounded-xl text-xs font-bold uppercase transition bg-[#101726] text-slate-300 border border-slate-800 hover:bg-slate-800 cursor-pointer">
+        RÉSULTATS J
+      </button>
+    </div>
 
-    <!-- Contenu Match -->
-    <main class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-4 shadow-xl">
+    <!-- CARTE PRINCIPALE -->
+    <div class="bg-[#101726] border border-slate-800/80 rounded-3xl p-6 shadow-2xl">
       
-      <!-- Affiche Equipes -->
-      <div class="flex justify-between items-center text-center py-2">
-        <div class="w-1/3 flex flex-col items-center gap-1">
-          <img id="team-home-logo" src="https://media.api-sports.io/football/teams/85.png" class="w-10 h-10 object-contain drop-shadow-lg" alt="Home">
-          <span id="team-home-name" class="text-xs font-bold leading-tight">PSG</span>
-        </div>
-        <div class="w-1/3 text-amber-400 font-black text-sm">VS</div>
-        <div class="w-1/3 flex flex-col items-center gap-1">
-          <img id="team-away-logo" src="" class="w-10 h-10 object-contain drop-shadow-lg" alt="Away">
-          <span id="team-away-name" class="text-xs font-bold leading-tight">Chargement...</span>
-        </div>
-      </div>
-
-      <!-- Compte à rebours -->
-      <div class="text-center bg-slate-900/50 py-2 rounded-xl border border-slate-800">
-        <span class="text-[10px] text-slate-400 uppercase font-semibold block">Coup d'envoi dans</span>
-        <span id="countdown" class="text-sm font-extrabold text-blue-400">Chargement...</span>
-      </div>
-
-      <!-- Onglet 1 : Formulaire Prono -->
-      <section id="tab-pronos" class="space-y-4">
-        <form id="prono-form" class="space-y-3">
-          <div>
-            <label for="nom" class="block text-xs font-semibold text-slate-300 mb-1">Ton Nom / Pseudo</label>
-            <input type="text" id="nom" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+      <!-- TAB 1 : PRONOS -->
+      <div id="tab-pronos" class="space-y-6">
+        
+        <!-- EN-TÊTE DU MATCH (DOMICILE VS EXTÉRIEUR) -->
+        <div class="flex items-center justify-between px-2">
+          <!-- ÉQUIPE DOMICILE -->
+          <div class="flex flex-col items-center w-1/3 text-center">
+            <img id="team-home-logo" src="https://media.api-sports.io/football/teams/85.png" alt="PSG" class="w-12 h-12 object-contain mb-1">
+            <span id="team-home-name" class="font-bold text-xs">PSG</span>
           </div>
-          
-          <div class="grid grid-cols-2 gap-2">
+
+          <!-- VS -->
+          <div class="text-amber-400 font-black text-sm">VS</div>
+
+          <!-- ÉQUIPE EXTÉRIEUR -->
+          <div class="flex flex-col items-center w-1/3 text-center">
+            <img id="team-away-logo" src="https://media.api-sports.io/football/teams/85.png" alt="Away" class="w-12 h-12 object-contain mb-1 opacity-50">
+            <span id="team-away-name" class="font-bold text-xs text-slate-400">Prochain adversaire</span>
+          </div>
+        </div>
+
+        <!-- DECOMPTE / COUP D'ENVOI -->
+        <div class="bg-[#090D16] border border-slate-800 rounded-2xl p-3 text-center">
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">COUP D'ENVOI DANS</div>
+          <div id="countdown" class="text-blue-400 font-bold text-xs">Programmation UEFA en cours</div>
+        </div>
+
+        <!-- FORMULAIRE DE PRONOSTIC -->
+        <form id="prono-form" class="space-y-4">
+          <div>
+            <label class="block text-slate-300 text-xs font-bold mb-1.5">Ton Nom / Pseudo</label>
+            <input type="text" id="nom" required class="w-full bg-[#090D16] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-blue-500 transition">
+          </div>
+
+          <!-- SCORES DU MATCH (COTE À COTE) -->
+          <div class="grid grid-cols-2 gap-3">
             <div>
-              <label for="score1" class="block text-xs font-semibold text-slate-300 mb-1">Buts Domicile</label>
-              <input type="number" id="score1" min="0" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-center text-white focus:outline-none focus:border-blue-500">
+              <label class="block text-slate-300 text-xs font-bold mb-1.5">Buts Domicile</label>
+              <input type="number" id="score1" min="0" max="15" required class="w-full bg-[#090D16] border border-slate-800 rounded-xl px-3 py-2.5 text-white text-xs text-center focus:outline-none focus:border-blue-500 transition">
             </div>
             <div>
-              <label for="score2" class="block text-xs font-semibold text-slate-300 mb-1">Buts Extérieur</label>
-              <input type="number" id="score2" min="0" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-center text-white focus:outline-none focus:border-blue-500">
+              <label class="block text-slate-300 text-xs font-bold mb-1.5">Buts Extérieur</label>
+              <input type="number" id="score2" min="0" max="15" required class="w-full bg-[#090D16] border border-slate-800 rounded-xl px-3 py-2.5 text-white text-xs text-center focus:outline-none focus:border-blue-500 transition">
             </div>
           </div>
 
           <div>
-            <label for="minute" class="block text-xs font-semibold text-slate-300 mb-1">Minute 1er But (départage)</label>
-            <input type="number" id="minute" min="1" max="120" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-center text-white focus:outline-none focus:border-blue-500">
+            <label class="block text-slate-300 text-xs font-bold mb-1.5">Minute 1er But (départage)</label>
+            <input type="number" id="minute" min="1" max="120" required class="w-full bg-[#090D16] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-blue-500 transition">
           </div>
 
-          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-2.5 rounded-xl text-sm transition shadow-lg cursor-pointer">Valider mon pronostic</button>
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition cursor-pointer shadow-lg mt-2">
+            Valider mon pronostic
+          </button>
+
+          <div id="status" class="text-center text-xs font-medium"></div>
         </form>
-        <div id="status" class="text-center text-[11px] font-semibold"></div>
 
-        <!-- Liste des parieurs -->
-        <div class="pt-2 border-t border-slate-800 space-y-2">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Pronostiqueurs inscrits :</span>
-          <div id="parieurs-list" class="flex flex-wrap gap-1.5">
-            <span class="text-slate-400 italic text-[11px]">Chargement...</span>
+        <!-- PRONOSTIQUEURS INSCRITS -->
+        <div class="border-t border-slate-800 pt-4">
+          <div class="text-slate-400 text-[11px] font-bold uppercase tracking-wider mb-2">PRONOSTIQUEURS INSCRITS :</div>
+          <div id="parieurs-list" class="flex flex-wrap gap-2 text-xs">
+            <span class="text-slate-500 italic text-[11px]">Chargement...</span>
           </div>
         </div>
-      </section>
 
-      <!-- Onglet 2 : Infos Match & Arbitre -->
-      <section id="tab-infos" class="hidden space-y-3 text-xs">
-        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-1.5">
-          <div><span class="text-slate-400">Date :</span> <strong id="info-date" class="text-slate-200">...</strong></div>
-          <div><span class="text-slate-400">Compétition :</span> <strong id="info-round" class="text-slate-200">...</strong></div>
-          <div><span class="text-slate-400">Stade :</span> <strong id="info-stadium" class="text-slate-200">...</strong></div>
+      </div>
+
+      <!-- TAB 2 : INFOS MATCH -->
+      <div id="tab-infos" class="space-y-4 hidden">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 border-b border-slate-800 pb-2">Détails de la rencontre</h3>
+        
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between border-b border-slate-800/50 py-1.5">
+            <span class="text-slate-400">Date & Heure :</span>
+            <span id="info-date" class="font-semibold text-slate-200">En attente</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/50 py-1.5">
+            <span class="text-slate-400">Compétition / Journée :</span>
+            <span id="info-round" class="font-semibold text-slate-200">Ligue des Champions</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/50 py-1.5">
+            <span class="text-slate-400">Stade :</span>
+            <span id="info-stadium" class="font-semibold text-slate-200">Non défini</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/50 py-1.5">
+            <span class="text-slate-400">Arbitre :</span>
+            <span id="info-referee" class="font-semibold text-slate-200">Non désigné</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/50 py-1.5">
+            <span class="text-slate-400">Nationalité Arbitre :</span>
+            <span id="info-referee-country" class="font-semibold text-slate-200">-</span>
+          </div>
         </div>
-        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-1.5">
-          <div class="font-bold text-amber-400">Corps Arbitral</div>
-          <div><span class="text-slate-400">Arbitre :</span> <strong id="info-referee" class="text-slate-200">...</strong> (<span id="info-referee-country" class="text-slate-300">...</span>)</div>
-          <p id="info-referee-comment" class="text-[11px] text-slate-400 leading-relaxed italic border-t border-slate-800/80 pt-2 mt-2">...</p>
+
+        <div class="bg-[#090D16] border border-slate-800 rounded-xl p-3 mt-4">
+          <div class="text-[10px] text-amber-400 font-bold uppercase mb-1">Analyse Arbitrage (IA)</div>
+          <p id="info-referee-comment" class="text-[11px] text-slate-300 leading-relaxed italic">
+            Les informations sur le corps arbitral apparaîtront dès leur officialisation.
+          </p>
         </div>
-      </section>
+      </div>
 
-      <!-- Onglet 3 : Résultats des journées -->
-      <section id="tab-resultats" class="hidden space-y-3">
-        <div id="matchdays-nav" class="flex gap-1.5 overflow-x-auto pb-1"></div>
-        <div id="ai-resultats-container" class="space-y-2"></div>
-      </section>
+      <!-- TAB 3 : RÉSULTATS J -->
+      <div id="tab-resultats" class="space-y-4 hidden">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">Résultats Phase de Ligue</div>
+        <div id="matchdays-nav" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none"></div>
+        <div id="ai-resultats-container" class="space-y-2 mt-2">
+          <span class="text-slate-500 italic text-[11px] block text-center">Sélectionnez une journée</span>
+        </div>
+      </div>
 
-    </main>
+    </div>
   </div>
 
+  <!-- SCRIPT LOGIQUE JS -->
   <script>
     const SUPABASE_URL = "https://bgcuxroguucumbveptvb.supabase.co";
     const SUPABASE_KEY = "sb_publishable_MuYlr1whhZ7eFS1D8LoP7Q_0NV70N1X";
@@ -135,19 +186,19 @@
       tabInfos.classList.add('hidden');
       tabResultats.classList.add('hidden');
 
-      btnPronos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
-      btnInfos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
-      btnResultats.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      if (btnPronos) btnPronos.classList.remove('bg-blue-600', 'text-white');
+      if (btnInfos) btnInfos.classList.remove('bg-blue-600', 'text-white');
+      if (btnResultats) btnResultats.classList.remove('bg-blue-600', 'text-white');
 
       if (tab === 'pronos') {
         tabPronos.classList.remove('hidden');
-        btnPronos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        if (btnPronos) btnPronos.classList.add('bg-blue-600', 'text-white');
       } else if (tab === 'infos') {
         tabInfos.classList.remove('hidden');
-        btnInfos.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        if (btnInfos) btnInfos.classList.add('bg-blue-600', 'text-white');
       } else if (tab === 'resultats') {
         tabResultats.classList.remove('hidden');
-        btnResultats.className = "px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        if (btnResultats) btnResultats.classList.add('bg-blue-600', 'text-white');
         initMatchdaysNav();
       }
     }
@@ -164,31 +215,48 @@
           currentFixtureId = match.fixture.id;
           const matchDate = new Date(match.fixture.date);
           
-          document.getElementById('team-home-name').innerText = match.teams.home.name;
-          document.getElementById('team-home-logo').src = match.teams.home.logo;
-          
-          document.getElementById('team-away-name').innerText = match.teams.away.name;
-          document.getElementById('team-away-logo').src = match.teams.away.logo;
+          const homeNameEl = document.getElementById('team-home-name');
+          const homeLogoEl = document.getElementById('team-home-logo');
+          const awayNameEl = document.getElementById('team-away-name');
+          const awayLogoEl = document.getElementById('team-away-logo');
 
-          document.getElementById('info-date').innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
-          document.getElementById('info-round').innerText = match.league.round || 'Phase de ligue';
+          if (homeNameEl) homeNameEl.innerText = match.teams.home.name;
+          if (homeLogoEl) homeLogoEl.src = match.teams.home.logo;
+          if (awayNameEl) {
+            awayNameEl.innerText = match.teams.away.name;
+            awayNameEl.classList.remove('text-slate-400');
+          }
+          if (awayLogoEl) {
+            awayLogoEl.src = match.teams.away.logo;
+            awayLogoEl.classList.remove('opacity-50');
+          }
+
+          const infoDateEl = document.getElementById('info-date');
+          const infoRoundEl = document.getElementById('info-round');
+          if (infoDateEl) infoDateEl.innerText = matchDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+          if (infoRoundEl) infoRoundEl.innerText = match.league.round || 'Phase de ligue';
 
           const stadiumName = match.fixture.venue?.name || 'Stade non défini';
           const stadiumCity = match.fixture.venue?.city ? ` (${match.fixture.venue.city})` : '';
-          document.getElementById('info-stadium').innerText = stadiumName + stadiumCity;
+          const infoStadiumEl = document.getElementById('info-stadium');
+          if (infoStadiumEl) infoStadiumEl.innerText = stadiumName + stadiumCity;
+
+          const infoRefEl = document.getElementById('info-referee');
+          const infoRefCountryEl = document.getElementById('info-referee-country');
+          const infoRefCommentEl = document.getElementById('info-referee-comment');
 
           if (match.fixture.referee) {
             const refParts = match.fixture.referee.split(',');
             const refName = refParts[0] ? refParts[0].trim() : match.fixture.referee;
             const refCountry = refParts[1] ? refParts[1].trim() : 'International';
 
-            document.getElementById('info-referee').innerText = refName;
-            document.getElementById('info-referee-country').innerText = refCountry;
-            document.getElementById('info-referee-comment').innerText = generateRefereeAIComment(refName, refCountry);
+            if (infoRefEl) infoRefEl.innerText = refName;
+            if (infoRefCountryEl) infoRefCountryEl.innerText = refCountry;
+            if (infoRefCommentEl) infoRefCommentEl.innerText = generateRefereeAIComment(refName, refCountry);
           } else {
-            document.getElementById('info-referee').innerText = 'En attente désignation UEFA';
-            document.getElementById('info-referee-country').innerText = 'UEFA';
-            document.getElementById('info-referee-comment').innerText = "L'UEFA n'a pas encore désigné le corps arbitral pour cette rencontre.";
+            if (infoRefEl) infoRefEl.innerText = 'En attente désignation UEFA';
+            if (infoRefCountryEl) infoRefCountryEl.innerText = 'UEFA';
+            if (infoRefCommentEl) infoRefCommentEl.innerText = "L'UEFA n'a pas encore désigné le corps arbitral.";
           }
 
           startCountdown(matchDate);
@@ -199,19 +267,17 @@
         console.error("Erreur API Football :", err);
       }
 
-      document.getElementById('countdown').innerText = "Programmation UEFA en cours";
-      document.getElementById('team-away-name').innerText = "Prochain adversaire";
-      document.getElementById('info-date').innerText = "Date et heure en attente";
+      const countdownEl = document.getElementById('countdown');
+      if (countdownEl) countdownEl.innerText = "Programmation UEFA en cours";
     }
 
     function generateRefereeAIComment(name, country) {
       const n = name.toLowerCase();
-      if (n.includes('turpin')) return "Clément Turpin est un arbitre d'expérience internationale très respecté. Réputé pédagogue avec les capitaines, il privilégie la fluidité du jeu.";
-      if (n.includes('marciniak')) return "Szymon Marciniak figure parmi l'élite mondiale. Avec un style très ferme, il laisse beaucoup jouer dans l'impact.";
-      if (n.includes('taylor')) return "Anthony Taylor applique la tradition britannique avec une grande tolérance sur les duels physiques.";
-      if (n.includes('letexier')) return "François Letexier incarne la nouvelle génération très dynamique et rigoureuse. Très à l'aise avec la VAR.";
-      
-      return `${name} (${country}) est un arbitre international sélectionné par l'UEFA pour les affiches de Ligue des Champions.`;
+      if (n.includes('turpin')) return "Clément Turpin est un arbitre d'expérience internationale très respecté.";
+      if (n.includes('marciniak')) return "Szymon Marciniak figure parmi l'élite mondiale avec un style très ferme.";
+      if (n.includes('taylor')) return "Anthony Taylor privilégie la continuité du jeu et laisse jouer dans les duels.";
+      if (n.includes('letexier')) return "François Letexier incarne la nouvelle génération dynamique et rigoureuse.";
+      return `${name} (${country}) est un arbitre sélectionné par l'UEFA pour la Ligue des Champions.`;
     }
 
     function startCountdown(targetDate) {
@@ -246,7 +312,7 @@
       for (let i = 1; i <= 8; i++) {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-slate-800 text-slate-300 border border-slate-700 shrink-0 cursor-pointer hover:bg-slate-700";
+        btn.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-[#090D16] text-slate-300 border border-slate-800 shrink-0 cursor-pointer hover:bg-slate-800";
         btn.innerText = "J" + i;
         btn.onclick = () => fetchMatchday(i);
         nav.appendChild(btn);
@@ -256,6 +322,7 @@
 
     async function fetchMatchday(dayNum) {
       const container = document.getElementById('ai-resultats-container');
+      if (!container) return;
       container.innerHTML = '<span class="text-slate-400 italic text-[11px] block text-center">Chargement Journée ' + dayNum + '...</span>';
 
       try {
@@ -269,7 +336,7 @@
           container.innerHTML = data.response.map(m => {
             const homeGoals = m.goals.home !== null ? m.goals.home : '-';
             const awayGoals = m.goals.away !== null ? m.goals.away : '-';
-            return '<div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex justify-between items-center text-xs">' +
+            return '<div class="bg-[#090D16] border border-slate-800 rounded-xl p-3 flex justify-between items-center text-xs">' +
               '<span class="w-1/3 truncate font-semibold">' + m.teams.home.name + '</span>' +
               '<span class="text-amber-400 font-black">' + homeGoals + ' : ' + awayGoals + '</span>' +
               '<span class="w-1/3 text-right truncate font-semibold">' + m.teams.away.name + '</span>' +
@@ -281,9 +348,9 @@
         console.error("Erreur API :", err);
       }
 
-      container.innerHTML = '<div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 text-center space-y-1">' +
+      container.innerHTML = '<div class="bg-[#090D16] border border-slate-800 rounded-2xl p-4 text-center space-y-1">' +
         '<div class="text-amber-400 font-bold text-xs uppercase">Journée ' + dayNum + '</div>' +
-        '<p class="text-[11px] text-slate-400">Le calendrier officiel et la programmation des matchs sont en cours de confirmation par l\'UEFA.</p>' +
+        '<p class="text-[11px] text-slate-400">Programmations en cours de confirmation par l\'UEFA.</p>' +
       '</div>';
     }
 
@@ -300,7 +367,7 @@
         const cagnotteEl = document.getElementById('cagnotte');
 
         if (error || !data) {
-          if (parieursList) parieursList.innerHTML = '<span class="text-slate-400 italic text-[11px]">Aucun pari pour le moment</span>';
+          if (parieursList) parieursList.innerHTML = '<span class="text-slate-500 italic text-[11px]">Aucun pari pour le moment</span>';
           if (cagnotteEl) cagnotteEl.innerText = '0 €';
           return;
         }
@@ -309,13 +376,13 @@
         if (cagnotteEl) cagnotteEl.innerText = (count * MISE_PAR_PERSONNE) + ' €';
 
         if (count === 0) {
-          if (parieursList) parieursList.innerHTML = '<span class="text-slate-400 italic text-[11px]">Aucun pari pour le moment</span>';
+          if (parieursList) parieursList.innerHTML = '<span class="text-slate-500 italic text-[11px]">Aucun pari pour le moment</span>';
           return;
         }
 
         if (parieursList) {
           parieursList.innerHTML = data.map(p => 
-            '<span class="bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 shadow">' + (p.nom_ami || 'Parieur') + '</span>'
+            '<span class="bg-[#090D16] text-slate-200 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-800 shadow-sm">' + (p.nom_ami || 'Parieur') + '</span>'
           ).join('');
         }
       } catch (err) {}
