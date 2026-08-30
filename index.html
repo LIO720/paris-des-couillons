@@ -29,12 +29,13 @@
         <p class="text-[11px] font-medium text-slate-400 tracking-wider">développé par yosnick</p>
       </div>
 
-      <!-- Barre de Navigation / 4 Onglets -->
-      <div class="flex justify-center space-x-1 pt-2 overflow-x-auto pb-1">
-        <button type="button" onclick="switchTab('pronos')" id="btn-tab-pronos" class="px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer">Vos pronos</button>
-        <button type="button" onclick="switchTab('infos')" id="btn-tab-infos" class="px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Info du match</button>
-        <button type="button" onclick="switchTab('resultats')" id="btn-tab-resultats" class="px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Match journée</button>
-        <button type="button" onclick="switchTab('classement')" id="btn-tab-classement" class="px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Classement intégral</button>
+      <!-- Barre de Navigation / 5 Onglets -->
+      <div class="flex flex-wrap justify-center gap-1 pt-2 pb-1">
+        <button type="button" onclick="switchTab('pronos')" id="btn-tab-pronos" class="px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer">Vos pronos</button>
+        <button type="button" onclick="switchTab('infos')" id="btn-tab-infos" class="px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Info du match</button>
+        <button type="button" onclick="switchTab('resultats')" id="btn-tab-resultats" class="px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Match journée</button>
+        <button type="button" onclick="switchTab('tous-les-paris')" id="btn-tab-tous-les-paris" class="px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Tous les paris</button>
+        <button type="button" onclick="switchTab('classement')" id="btn-tab-classement" class="px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer">Classement</button>
       </div>
       
       <!-- Cagnotte Globale -->
@@ -123,7 +124,7 @@
         </div>
       </div>
 
-      <!-- Rappel des Règles & Process -->
+      <!-- Rappel des Règles -->
       <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2 text-[11px] text-slate-300">
         <div class="flex items-center space-x-2 text-blue-400 font-bold uppercase tracking-wider">
           <span>ℹ️</span>
@@ -182,11 +183,11 @@
       </div>
     </main>
 
-    <!-- ONGLET 3 : RÉSULTATS & CALENDRIER 8 JOURNÉES -->
+    <!-- ONGLET 3 : RÉSULTATS & JOURNÉES -->
     <main id="tab-resultats" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
       <div class="text-center space-y-2">
-        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Calendrier des 8 Journées</h2>
-        <p class="text-[11px] text-slate-300">Navigation de la Journée 1 à 8</p>
+        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Calendrier & Historique par match</h2>
+        <p class="text-[11px] text-slate-300">Cliquez sur un match pour voir les paris associés</p>
       </div>
 
       <!-- Boutons des 8 Journées -->
@@ -199,7 +200,19 @@
       </div>
     </main>
 
-    <!-- ONGLET 4 : CLASSEMENT GÉNÉRAL C1 -->
+    <!-- ONGLET 4 : TOUS LES PARIS GLOBAL -->
+    <main id="tab-tous-les-paris" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-4">
+      <div class="text-center space-y-1">
+        <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Historique Global de Tous les Paris</h2>
+        <p class="text-[11px] text-slate-300">Récapitulatif complet de tous les paris enregistrés</p>
+      </div>
+
+      <div id="all-bets-container" class="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+        <span class="text-slate-400 italic text-[11px] block text-center py-8">Chargement de l'historique global...</span>
+      </div>
+    </main>
+
+    <!-- ONGLET 5 : CLASSEMENT GÉNÉRAL C1 -->
     <main id="tab-classement" class="hidden bg-slate-900/85 border border-slate-700/60 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-4">
       <div class="text-center space-y-1">
         <h2 class="text-xs font-bold tracking-widest text-blue-400 uppercase">Classement Phase de Ligue</h2>
@@ -219,6 +232,16 @@
       <button onclick="closeClubModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-base bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
       <div id="club-modal-content" class="space-y-4 pt-2">
         <div class="text-center text-slate-400 py-10">Chargement des informations du club...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL HISTORIQUE DES PARIS D'UN MATCH -->
+  <div id="history-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-md max-h-[85vh] overflow-y-auto p-6 space-y-5 relative shadow-2xl">
+      <button onclick="closeHistoryModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-base bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
+      <div id="history-modal-content" class="space-y-4 pt-2">
+        <div class="text-center text-slate-400 py-10">Chargement des paris...</div>
       </div>
     </div>
   </div>
@@ -243,39 +266,130 @@
       const tabPronos = document.getElementById('tab-pronos');
       const tabInfos = document.getElementById('tab-infos');
       const tabResultats = document.getElementById('tab-resultats');
+      const tabTousLesParis = document.getElementById('tab-tous-les-paris');
       const tabClassement = document.getElementById('tab-classement');
       
       const btnPronos = document.getElementById('btn-tab-pronos');
       const btnInfos = document.getElementById('btn-tab-infos');
       const btnResultats = document.getElementById('btn-tab-resultats');
+      const btnTousLesParis = document.getElementById('btn-tab-tous-les-paris');
       const btnClassement = document.getElementById('btn-tab-classement');
 
-      if (!tabPronos || !tabInfos || !tabResultats || !tabClassement) return;
+      if (!tabPronos || !tabInfos || !tabResultats || !tabTousLesParis || !tabClassement) return;
 
       tabPronos.classList.add('hidden');
       tabInfos.classList.add('hidden');
       tabResultats.classList.add('hidden');
+      tabTousLesParis.classList.add('hidden');
       tabClassement.classList.add('hidden');
 
-      btnPronos.className = "px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
-      btnInfos.className = "px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
-      btnResultats.className = "px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
-      btnClassement.className = "px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnPronos.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnInfos.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnResultats.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnTousLesParis.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
+      btnClassement.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-slate-900/90 text-slate-400 border border-slate-700 cursor-pointer";
 
       if (tab === 'pronos') {
         tabPronos.classList.remove('hidden');
-        btnPronos.className = "px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        btnPronos.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
       } else if (tab === 'infos') {
         tabInfos.classList.remove('hidden');
-        btnInfos.className = "px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        btnInfos.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
       } else if (tab === 'resultats') {
         tabResultats.classList.remove('hidden');
-        btnResultats.className = "px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        btnResultats.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
         initMatchdaysNav();
+      } else if (tab === 'tous-les-paris') {
+        tabTousLesParis.classList.remove('hidden');
+        btnTousLesParis.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        fetchAllBetsGlobalHistory();
       } else if (tab === 'classement') {
         tabClassement.classList.remove('hidden');
-        btnClassement.className = "px-2 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
+        btnClassement.className = "px-2.5 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow-lg cursor-pointer";
         fetchStandings();
+      }
+    }
+
+    async function fetchAllBetsGlobalHistory() {
+      const container = document.getElementById('all-bets-container');
+      if (!container) return;
+
+      container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Chargement de tous les paris...</span>`;
+
+      try {
+        // 1. Récupérer tous les pronos depuis Supabase
+        const { data: pronos, error } = await supabaseClient
+          .from('pronostics')
+          .select('*')
+          .order('id', { ascending: false });
+
+        if (error || !pronos || pronos.length === 0) {
+          container.innerHTML = `<span class="text-slate-400 italic text-[11px] block text-center py-8">Aucun pari enregistré pour le moment.</span>`;
+          return;
+        }
+
+        // 2. S'assurer d'avoir les fixtures chargées pour retrouver les infos des matchs
+        if (allClFixtures.length === 0) {
+          const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=2&season=2026`, {
+            headers: { "x-apisports-key": API_FOOTBALL_KEY }
+          });
+          const data = await response.json();
+          if (data.response) {
+            allClFixtures = data.response.filter(m => {
+              const r = (m.league.round || '').toLowerCase();
+              return !r.includes('qualifying') && !r.includes('preliminary') && !r.includes('play-off') && !r.includes('playoffs') && !r.includes('barrage') && !r.includes('knockout') && !r.includes('round of');
+            });
+          }
+        }
+
+        const fixtureMap = {};
+        allClFixtures.forEach(m => {
+          fixtureMap[m.fixture.id] = m;
+        });
+
+        container.innerHTML = `
+          <div class="space-y-2">
+            ${pronos.map(p => {
+              const match = fixtureMap[p.fixture_id];
+              const homeName = match ? match.teams.home.name : "Équipe domicile";
+              const awayName = match ? match.teams.away.name : "Équipe extérieure";
+              const homeLogo = match ? match.teams.home.logo : "";
+              const awayLogo = match ? match.teams.away.logo : "";
+              const matchDate = match ? new Date(match.fixture.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : "Date inconnue";
+              const hGoals = match && match.goals.home !== null ? match.goals.home : '-';
+              const aGoals = match && match.goals.away !== null ? match.goals.away : '-';
+              const isFinished = match && match.fixture.status.short === 'FT';
+
+              let isExact = false;
+              if (isFinished && match.goals.home !== null && match.goals.away !== null) {
+                const [ph, pa] = p.score_parier.split('-').map(Number);
+                isExact = (ph === match.goals.home && pa === match.goals.away);
+              }
+
+              return `
+                <div class="bg-slate-950/75 border ${isExact ? 'border-amber-500/80 bg-amber-500/10' : 'border-slate-800'} rounded-2xl p-3 space-y-2 text-xs shadow-md">
+                  <div class="flex justify-between items-center text-[10px] text-slate-400 border-b border-slate-800/60 pb-1">
+                    <span class="font-semibold text-blue-400">${homeName} vs ${awayName}</span>
+                    <span>${matchDate}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2 truncate">
+                      <span class="font-black text-slate-100">${p.nom_ami}</span>
+                      ${isExact ? '<span class="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black text-[9px] uppercase">Vainqueur 🏆</span>' : ''}
+                    </div>
+                    <div class="flex items-center space-x-3 shrink-0">
+                      <span class="text-[10px] text-slate-400">Score réel: <strong class="text-amber-400">${hGoals}-${aGoals}</strong></span>
+                      <span class="bg-blue-950/90 text-blue-300 px-2 py-0.5 rounded font-mono font-bold border border-blue-800/50">Prono: ${p.score_parier}</span>
+                      <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `<span class="text-red-400 italic text-[11px] block text-center py-8">Erreur lors du chargement de l'historique global.</span>`;
       }
     }
 
@@ -497,6 +611,117 @@
       if (modal) modal.classList.add('hidden');
     }
 
+    async function openMatchHistoryModal(fixtureId, homeName, awayName, homeLogo, awayLogo, matchDateStr, hGoals, aGoals, statusShort) {
+      const modal = document.getElementById('history-modal');
+      const content = document.getElementById('history-modal-content');
+      if (!modal || !content) return;
+
+      modal.classList.remove('hidden');
+      content.innerHTML = `<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-7 w-7 border-4 border-blue-500 border-t-transparent"></div><p class="text-xs text-slate-400 mt-2">Chargement des paris de ce match...</p></div>`;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('pronostics')
+          .select('*')
+          .eq('fixture_id', fixtureId);
+
+        let firstGoalMin = null;
+        if (statusShort === 'FT') {
+          try {
+            const evRes = await fetch(`https://v3.football.api-sports.io/fixtures/events?fixture=${fixtureId}`, {
+              headers: { "x-apisports-key": API_FOOTBALL_KEY }
+            });
+            const evData = await evRes.json();
+            if (evData.response) {
+              const goals = evData.response.filter(e => e.type === 'Goal' && e.detail !== 'Missed Penalty');
+              if (goals.length > 0) {
+                goals.sort((a, b) => a.time.elapsed - b.time.elapsed);
+                firstGoalMin = goals[0].time.elapsed;
+              } else {
+                firstGoalMin = 0;
+              }
+            }
+          } catch (e) {
+            firstGoalMin = 0;
+          }
+        }
+
+        const count = data ? data.length : 0;
+        let processedData = [];
+        if (data && count > 0) {
+          processedData = data.map(p => {
+            const [ph, pa] = p.score_parier.split('-').map(Number);
+            const isExactScore = (statusShort === 'FT' && ph === hGoals && pa === aGoals);
+            const minuteDiff = firstGoalMin !== null ? Math.abs(p.minute_1er_but - firstGoalMin) : 0;
+            return { ...p, isExactScore, minuteDiff };
+          });
+
+          processedData.sort((a, b) => {
+            if (a.isExactScore && !b.isExactScore) return -1;
+            if (!a.isExactScore && b.isExactScore) return 1;
+            return a.minuteDiff - b.minuteDiff;
+          });
+        }
+
+        const aUnVraiGagnant = statusShort === 'FT' && count > 0 && processedData[0].isExactScore;
+
+        content.innerHTML = `
+          <div class="text-center space-y-2 border-b border-slate-800 pb-4">
+            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest block">${matchDateStr}</span>
+            <div class="flex items-center justify-between px-2">
+              <div class="flex flex-col items-center w-1/3 truncate">
+                <img src="${homeLogo}" class="w-8 h-8 object-contain mb-1" alt="">
+                <span class="text-xs font-bold text-slate-200 truncate w-full">${homeName}</span>
+              </div>
+              <div class="text-sm font-black text-amber-400 w-1/3 text-center">
+                ${hGoals !== null ? hGoals + ' - ' + aGoals : 'VS'}
+              </div>
+              <div class="flex flex-col items-center w-1/3 truncate">
+                <img src="${awayLogo}" class="w-8 h-8 object-contain mb-1" alt="">
+                <span class="text-xs font-bold text-slate-200 truncate w-full">${awayName}</span>
+              </div>
+            </div>
+            <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-semibold inline-block">
+              ${statusShort === 'FT' ? 'Match Terminé' : statusShort === 'NS' ? 'À venir' : statusShort}
+            </span>
+          </div>
+
+          <div class="space-y-3 pt-1">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Paris enregistrés (${count})</h3>
+            
+            ${count === 0 ? `
+              <p class="text-center text-xs text-slate-400 italic py-6">Aucun pari enregistré pour ce match.</p>
+            ` : `
+              <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                ${processedData.map((p, index) => {
+                  const isWinner = aUnVraiGagnant && index === 0;
+                  return `
+                    <div class="flex items-center justify-between p-2.5 rounded-xl border text-xs ${isWinner ? 'bg-amber-500/20 border-amber-500/80 shadow-lg' : 'bg-slate-950/70 border-slate-800'}">
+                      <div class="flex items-center space-x-2 truncate">
+                        <span class="font-bold text-slate-200 truncate">${p.nom_ami}</span>
+                        ${isWinner ? '<span class="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black text-[9px] uppercase">Gagnant</span>' : ''}
+                      </div>
+                      <div class="flex items-center space-x-3 shrink-0">
+                        <span class="bg-blue-950/80 text-blue-300 px-2 py-0.5 rounded font-mono font-bold border border-blue-800/50">${p.score_parier}</span>
+                        <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      } catch (err) {
+        content.innerHTML = `<p class="text-xs text-red-400 text-center py-6">Erreur lors du chargement des paris.</p>`;
+      }
+    }
+
+    function closeHistoryModal() {
+      const modal = document.getElementById('history-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
     function startCountdown(targetDate) {
       setInterval(() => {
         const now = new Date();
@@ -590,9 +815,9 @@
       if (matchesToShow && matchesToShow.length > 0) {
         container.innerHTML = `
           <div class="text-center pb-1">
-            <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Journée ${dayNum} sur 8</span>
+            <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Journée ${dayNum} sur 8 (Cliquez sur un match)</span>
           </div>
-          <div class="space-y-2">
+          <div class="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
             ${matchesToShow.map(m => {
               const matchDate = new Date(m.fixture.date);
               const dateFormatted = matchDate.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
@@ -602,10 +827,11 @@
               const statusText = statusShort === 'FT' ? 'Terminé' : statusShort === 'NS' ? 'À venir' : statusShort;
 
               return `
-                <div class="bg-slate-950/75 border border-slate-800 rounded-2xl p-3 flex flex-col space-y-1.5 text-xs shadow-md">
+                <div onclick="openMatchHistoryModal(${m.fixture.id}, '${m.teams.home.name.replace(/'/g, "\\'")}', '${m.teams.away.name.replace(/'/g, "\\'")}', '${m.teams.home.logo}', '${m.teams.away.logo}', '${dateFormatted}', ${m.goals.home}, ${m.goals.away}, '${statusShort}')" 
+                     class="bg-slate-950/75 border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 flex flex-col space-y-1.5 text-xs shadow-md transition cursor-pointer transform hover:scale-[1.01]">
                   <div class="flex justify-between items-center text-[10px] text-slate-400 border-b border-slate-800/60 pb-1">
                     <span>${dateFormatted}</span>
-                    <span class="font-semibold text-slate-300">${statusText}</span>
+                    <span class="font-semibold text-blue-400 flex items-center space-x-1"><span>🔍 Voir les paris</span> • <span>${statusText}</span></span>
                   </div>
                   <div class="flex justify-between items-center">
                     <div class="flex items-center space-x-2 w-[42%] truncate">
@@ -673,7 +899,6 @@
       try {
         if (!currentFixtureId) return;
 
-        // On filtre strictement les pronos du match en cours grâce au fixture_id
         const { data, error } = await supabaseClient
           .from('pronostics')
           .select('*')
@@ -788,7 +1013,6 @@
         const scoreParier = `${score1}-${score2}`;
 
         try {
-          // On insère le pari avec le fixture_id associé au match actif
           const { error } = await supabaseClient.from('pronostics').insert([
             { 
               nom_ami: nom, 
