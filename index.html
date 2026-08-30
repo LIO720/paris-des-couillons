@@ -688,24 +688,78 @@
       if (!modal || !content) return;
 
       modal.classList.remove('hidden');
-      content.innerHTML = `<div class="text-center py-12"><div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div><p class="text-xs text-slate-400 mt-3">Chargement des détails du club...</p></div>`;
+      content.innerHTML = `<div class="text-center py-12"><div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div><p class="text-xs text-slate-400 mt-3">Chargement des détails, du coach et de l'infirmerie...</p></div>`;
 
       try {
-        const [resTeam, resStats, resSquad] = await Promise.all([
+        const [resTeam, resStats, resSquad, resCoach, resInjuries] = await Promise.all([
           fetch(`https://v3.football.api-sports.io/teams?id=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } }),
           fetch(`https://v3.football.api-sports.io/teams/statistics?league=2&season=2026&team=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } }),
-          fetch(`https://v3.football.api-sports.io/players/squads?team=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } })
+          fetch(`https://v3.football.api-sports.io/players/squads?team=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } }),
+          fetch(`https://v3.football.api-sports.io/coachs?team=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } }),
+          fetch(`https://v3.football.api-sports.io/injuries?team=${teamId}`, { headers: { "x-apisports-key": API_FOOTBALL_KEY } })
         ]);
 
         const dataTeam = await resTeam.json();
         const dataStats = await resStats.json();
         const dataSquad = await resSquad.json();
+        const dataCoach = await resCoach.json();
+        const dataInjuries = await resInjuries.json();
 
         if (dataTeam.response && dataTeam.response.length > 0) {
           const item = dataTeam.response[0];
           const team = item.team;
           const venue = item.venue;
           const squadList = dataSquad.response && dataSquad.response.length > 0 ? dataSquad.response[0].players : [];
+          const stats = dataStats.response || {};
+          const coachs = dataCoach.response || [];
+          const injuries = dataInjuries.response || [];
+
+          const goalsFor = stats.goals?.for?.total?.total !== undefined ? stats.goals.for.total.total : (stats.goals?.for?.total || '0');
+          const goalsAgainst = stats.goals?.against?.total?.total !== undefined ? stats.goals.against.total.total : (stats.goals?.against?.total || '0');
+          const cleanSheets = stats.clean_sheet?.total !== undefined ? stats.clean_sheet.total : '0';
+          const form = stats.form || '-';
+
+          let coachHtml = '';
+          if (coachs.length > 0) {
+            const coach = coachs[0];
+            coachHtml = `
+              <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3 flex items-center space-x-3 text-xs">
+                <img src="${coach.photo || 'https://media.api-sports.io/football/coachs/default.png'}" class="w-12 h-12 rounded-full object-cover bg-slate-900 border border-slate-700" onerror="this.src='https://media.api-sports.io/football/coachs/default.png'">
+                <div>
+                  <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Entraîneur</span>
+                  <span class="font-bold text-white text-sm">${coach.name}</span>
+                  <span class="text-[11px] text-slate-400 block">${coach.nationality} • ${coach.age ? coach.age + ' ans' : ''}</span>
+                </div>
+              </div>
+            `;
+          }
+
+          let injuriesHtml = '';
+          if (injuries.length > 0) {
+            injuriesHtml = `
+              <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3 space-y-2 text-xs">
+                <span class="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">Infirmerie / Absents (${injuries.length})</span>
+                <div class="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                  ${injuries.map(i => `
+                    <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex items-center justify-between">
+                      <div class="flex items-center space-x-2 truncate">
+                        <img src="${i.player.photo || 'https://media.api-sports.io/football/players/default.png'}" class="w-6 h-6 rounded-full object-cover" onerror="this.src='https://media.api-sports.io/football/players/default.png'">
+                        <span class="font-semibold text-slate-200 truncate">${i.player.name}</span>
+                      </div>
+                      <span class="text-[10px] text-rose-300 italic truncate max-w-[120px]">${i.player.reason} (${i.player.type})</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          } else {
+            injuriesHtml = `
+              <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3 text-xs">
+                <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Infirmerie / Absents</span>
+                <p class="text-slate-300 text-[11px] mt-1">✅ Aucun joueur blessé ou suspendu recensé.</p>
+              </div>
+            `;
+          }
 
           content.innerHTML = `
             <div class="flex items-center space-x-4 border-b border-slate-800 pb-4">
@@ -715,23 +769,58 @@
                 <p class="text-xs text-slate-400">${team.country} • Fondé en ${team.founded || 'N/C'}</p>
               </div>
             </div>
+
             ${venue ? `
-              <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3 space-y-1 text-xs">
-                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Stade officiel</span>
-                <p class="font-semibold text-white">${venue.name} (${venue.city})</p>
-                <p class="text-[11px] text-slate-400">Capacité : ${venue.capacity ? venue.capacity.toLocaleString() : 'N/C'} places</p>
+              <div class="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden space-y-2 text-xs">
+                ${venue.image ? `<img src="${venue.image}" alt="${venue.name}" class="w-full h-32 object-cover">` : ''}
+                <div class="p-3 space-y-1">
+                  <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Stade officiel</span>
+                  <p class="font-semibold text-white">${venue.name} (${venue.city})</p>
+                  <p class="text-[11px] text-slate-400">Capacité : ${venue.capacity ? venue.capacity.toLocaleString() : 'N/C'} places</p>
+                </div>
               </div>
             ` : ''}
+
+            ${coachHtml}
+
+            ${injuriesHtml}
+
+            <!-- Statistiques & Série -->
+            <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3 space-y-2 text-xs">
+              <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Statistiques & Série (C1 2026)</span>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+                  <span class="text-[10px] text-slate-400 block">Buts marqués</span>
+                  <span class="text-sm font-black text-emerald-400">${goalsFor}</span>
+                </div>
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+                  <span class="text-[10px] text-slate-400 block">Buts encaissés</span>
+                  <span class="text-sm font-black text-rose-400">${goalsAgainst}</span>
+                </div>
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+                  <span class="text-[10px] text-slate-400 block">Clean Sheets</span>
+                  <span class="text-sm font-black text-blue-400">${cleanSheets}</span>
+                </div>
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+                  <span class="text-[10px] text-slate-400 block">Série (Forme)</span>
+                  <span class="text-xs font-bold text-amber-300 tracking-widest">${form}</span>
+                </div>
+              </div>
+            </div>
+
             <div class="space-y-2">
               <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">Effectif (${squadList.length} joueurs)</span>
               <div class="max-h-60 overflow-y-auto space-y-1 pr-1">
                 ${squadList.length > 0 ? squadList.map(p => `
                   <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl px-3 py-2 flex items-center justify-between text-xs">
-                    <div class="flex items-center space-x-2">
-                      <span class="w-6 h-6 rounded-lg bg-blue-950 border border-blue-800 text-blue-300 flex items-center justify-center font-bold text-[10px]">${p.number !== null ? p.number : '-'}</span>
-                      <span class="font-semibold text-slate-200">${p.name}</span>
+                    <div class="flex items-center space-x-2.5">
+                      <img src="${p.photo || 'https://media.api-sports.io/football/players/default.png'}" class="w-8 h-8 rounded-full object-cover bg-slate-900 border border-slate-700" onerror="this.src='https://media.api-sports.io/football/players/default.png'">
+                      <div>
+                        <span class="font-semibold text-slate-200 block">${p.name}</span>
+                        <span class="text-[9px] text-slate-400 uppercase">${p.position}</span>
+                      </div>
                     </div>
-                    <span class="text-[10px] text-slate-400 uppercase">${p.position}</span>
+                    <span class="w-6 h-6 rounded-lg bg-blue-950 border border-blue-800 text-blue-300 flex items-center justify-center font-bold text-[10px]">${p.number !== null ? p.number : '-'}</span>
                   </div>
                 `).join('') : '<span class="text-slate-400 italic text-xs">Aucun joueur trouvé.</span>'}
               </div>
