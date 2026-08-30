@@ -387,7 +387,7 @@
                     <div class="flex items-center space-x-3 shrink-0">
                       ${isFinished ? `<span class="text-[10px] text-slate-400">Score réel: <strong class="text-amber-400">${hGoals}-${aGoals}</strong></span>` : '<span class="text-[10px] text-slate-400 italic">Match en cours / à venir</span>'}
                       <span class="bg-blue-950/90 text-blue-300 px-2 py-0.5 rounded font-mono font-bold border border-blue-800/50">Prono: ${isFinished ? p.score_parier : 'Masqué 🔒'}</span>
-                      <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
+                      <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${isFinished ? p.minute_1er_but + "'" : '🔒'}</strong></span>
                     </div>
                   </div>
                 </div>
@@ -669,7 +669,7 @@
                     <div class="flex items-center space-x-3 shrink-0">
                       ${isFinished ? `<span class="text-[10px] text-slate-400">Réel: <strong class="text-amber-400">${match.goals.home}-${match.goals.away}</strong></span>` : ''}
                       <span class="bg-blue-950/90 text-blue-300 px-2 py-0.5 rounded font-mono font-bold border border-blue-800/50">Prono: ${isFinished ? p.score_parier : 'Masqué 🔒'}</span>
-                      <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${p.minute_1er_but}'</strong></span>
+                      <span class="text-slate-400 text-[10px]">Min: <strong class="text-amber-400">${isFinished ? p.minute_1er_but + "'" : '🔒'}</strong></span>
                     </div>
                   </div>
                 `;
