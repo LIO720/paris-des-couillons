@@ -1,36 +1,19 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   const API_FOOTBALL_KEY = "15a5eabb2d17b76fb922cd808a574779";
-  
-  const endpoints = [
-    "https://v3.football.api-sports.io/fixtures?team=85&next=1",
-    "https://v3.football.api-sports.io/fixtures?team=85&season=2026&next=1",
-    "https://v3.football.api-sports.io/fixtures?team=85&season=2025&next=1",
-    "https://v3.football.api-sports.io/fixtures?league=61&season=2026&next=10"
-  ];
+  const url = "https://v3.football.api-sports.io/fixtures?league=61&season=2026&team=85&next=1";
 
-  for (let url of endpoints) {
-    try {
-      const response = await fetch(url, {
-        headers: { "x-apisports-key": API_FOOTBALL_KEY }
-      });
-      const data = await response.json();
-      
-      if (data.response && data.response.length > 0) {
-        const now = new Date();
-        const futureMatches = data.response.filter(m => new Date(m.fixture.date) > now);
-        
-        if (futureMatches.length > 0) {
-          futureMatches.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
-          return res.status(200).json({ response: [futureMatches[0]] });
-        } else if (url.includes("next=1")) {
-          return res.status(200).json(data);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
+  try {
+    const response = await fetch(url, {
+      headers: { "x-apisports-key": API_FOOTBALL_KEY }
+    });
+    const data = await response.json();
+    return res.status(200).json({
+      statusHttp: response.status,
+      urlTestee: url,
+      contenuApi: data
+    });
+  } catch (e) {
+    return res.status(500).json({ erreurInterne: e.message });
   }
-
-  return res.status(200).json({ response: [] });
 }
