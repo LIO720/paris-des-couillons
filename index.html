@@ -125,28 +125,24 @@
       let match = null;
       const headers = { "x-apisports-key": API_FOOTBALL_KEY };
 
-      const endpoints = [
-        "https://v3.football.api-sports.io/fixtures?team=85&next=10",
-        "https://v3.football.api-sports.io/fixtures?league=61&next=10",
-        "https://v3.football.api-sports.io/fixtures?team=85&season=2025&status=NS",
-        "https://v3.football.api-sports.io/fixtures?team=85&season=2026&status=NS"
-      ];
+      try {
+        let res = await fetch("https://v3.football.api-sports.io/fixtures?team=85&next=5", { headers });
+        let data = await res.json();
 
-      for (let url of endpoints) {
-        try {
-          let res = await fetch(url, { headers });
-          let data = await res.json();
-          if (data.response && data.response.length > 0) {
-            match = data.response.find(m => 
-              (m.teams.home.id === 85 || m.teams.away.id === 85) && 
-              (m.fixture.status.short === "NS" || m.fixture.status.short === "TBD")
-            ) || data.response[0];
-            
-            if (match) break;
+        if (data.response && data.response.length > 0) {
+          match = data.response[0];
+        } else {
+          const currentYear = new Date().getFullYear();
+          let resSeason = await fetch(`https://v3.football.api-sports.io/fixtures?team=85&season=${currentYear}&status=NS`, { headers });
+          let dataSeason = await resSeason.json();
+
+          if (dataSeason.response && dataSeason.response.length > 0) {
+            dataSeason.response.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+            match = dataSeason.response[0];
           }
-        } catch (e) {
-          console.warn("Échec requête API :", url, e);
         }
+      } catch (e) {
+        console.warn("Erreur lors de la récupération du match :", e);
       }
 
       if (match) {
@@ -168,7 +164,7 @@
         currentFixtureId = 850001;
         document.getElementById('team-away-logo').src = placeholderLogo;
         document.getElementById('team-away-name').innerText = "Prochain Adversaire";
-        document.getElementById('countdown').innerText = "Pronostics ouverts (en attente calendrier API)";
+        document.getElementById('countdown').innerText = "Pronostics ouverts";
         document.getElementById('info-date').innerText = "En attente de programmation";
         document.getElementById('info-round').innerText = "Compétition officielle";
         document.getElementById('info-stadium').innerText = "Stade non défini";
