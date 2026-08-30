@@ -265,19 +265,17 @@
 
     async function fetchNextPSGMatch() {
       try {
-        // Récupère tous les matchs de Champions League (league=2) pour le PSG (team=85) de la saison 2026
         const response = await fetch(`https://v3.football.api-sports.io/fixtures?team=85&league=2&season=2026`, {
           headers: { "x-apisports-key": API_FOOTBALL_KEY }
         });
         const data = await response.json();
         
         if (data.response && data.response.length > 0) {
-          // Tri chronologique de tous les matchs du PSG en C1
           const clMatches = data.response.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
           
           const now = new Date();
           let targetIndex = clMatches.findIndex(m => new Date(m.fixture.date) >= now || m.fixture.status.short === 'LIVE' || m.fixture.status.short === 'HT');
-          if (targetIndex === -1) targetIndex = 0; // Fallback sur le premier si tous passés
+          if (targetIndex === -1) targetIndex = 0;
           
           const match = clMatches[targetIndex];
           const matchDate = new Date(match.fixture.date);
@@ -291,7 +289,6 @@
           currentAwayTeamId = match.teams.away.id;
           const awayTeamName = isHome ? match.teams.away.name : match.teams.home.name;
           
-          // Attribution dynamique de la Journée selon la position chronologique (1 à 8)
           const roundNumber = targetIndex + 1;
           const roundName = `Journée ${roundNumber}`;
           
@@ -667,7 +664,7 @@
         const scoreParier = `${score1}-${score2}`;
 
         try {
-          const { error } = await supabaseClient.from('pronostics'].insert([
+          const { error } = await supabaseClient.from('pronostics').insert([
             { 
               nom_ami: nom, 
               score_parier: scoreParier, 
