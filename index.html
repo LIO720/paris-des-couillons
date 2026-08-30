@@ -126,19 +126,18 @@
       const headers = { "x-apisports-key": API_FOOTBALL_KEY };
 
       try {
-        let res = await fetch("https://v3.football.api-sports.io/fixtures?team=85&next=5", { headers });
+        let res = await fetch("https://v3.football.api-sports.io/fixtures?team=85&season=2026", { headers });
         let data = await res.json();
 
         if (data.response && data.response.length > 0) {
-          match = data.response[0];
-        } else {
-          const currentYear = new Date().getFullYear();
-          let resSeason = await fetch(`https://v3.football.api-sports.io/fixtures?team=85&season=${currentYear}&status=NS`, { headers });
-          let dataSeason = await resSeason.json();
+          const now = new Date();
+          const futureMatches = data.response.filter(m => new Date(m.fixture.date) > now);
 
-          if (dataSeason.response && dataSeason.response.length > 0) {
-            dataSeason.response.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
-            match = dataSeason.response[0];
+          if (futureMatches.length > 0) {
+            futureMatches.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+            match = futureMatches[0];
+          } else {
+            match = data.response[data.response.length - 1];
           }
         }
       } catch (e) {
